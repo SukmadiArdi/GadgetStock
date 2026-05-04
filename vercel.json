@@ -1,15 +1,8 @@
 {
-  "version": 2,
   "name": "gadgetstock",
-  "builds": [
-    { "src": "public/**", "use": "@vercel/static" },
-    { "src": "api/**/*.js", "use": "@vercel/node" }
-  ],
+  "outputDirectory": "public",
   "routes": [
-    { "src": "/css/(.*)",   "dest": "/public/css/$1" },
-    { "src": "/js/(.*)",    "dest": "/public/js/$1" },
-    { "src": "/pages/(.*)", "dest": "/public/pages/$1" },
     { "handle": "filesystem" },
-    { "src": "/(.*)",       "dest": "/public/index.html" }
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
