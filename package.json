@@ -5,16 +5,12 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js",
-    "deploy": "vercel --prod"
+    "dev": "node server.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.4",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^4.21.2"
-  },
-  "devDependencies": {
-    "vercel": "^41.7.0"
   }
 }
