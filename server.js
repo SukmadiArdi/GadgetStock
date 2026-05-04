@@ -43,7 +43,7 @@ function vercelHandler(handlerPath, paramMap = {}) {
 
 // Dashboard
 app.get('/api/dashboard/summary',
-  vercelHandler('./api/dashboard/summary'));
+  vercelHandler('./api/dashboard/summary/index'));
 
 // Products
 app.get('/api/products',
@@ -63,7 +63,7 @@ app.delete('/api/products/:id',
 
 // Inventory
 app.get('/api/inventory/low-stock',
-  vercelHandler('./api/inventory/low-stock'));
+  vercelHandler('./api/inventory/low-stock/index'));
 
 // Transactions
 app.get('/api/transactions',
@@ -77,10 +77,10 @@ app.get('/api/transactions/:id',
 
 // Reports
 app.get('/api/reports/daily',
-  vercelHandler('./api/reports/daily'));
+  vercelHandler('./api/reports/daily/index'));
 
 app.get('/api/reports/monthly',
-  vercelHandler('./api/reports/monthly'));
+  vercelHandler('./api/reports/monthly/index'));
 
 // ─── SPA Fallback ──────────────────────────────────────────────
 // express.static sudah melayani semua file di public/
