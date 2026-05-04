@@ -1,0 +1,189 @@
+<!-- pages/dashboard.html -->
+<div class="fade-in">
+  <!-- Page Header -->
+  <div style="margin-bottom:2rem;">
+    <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.15em;font-weight:700;color:var(--on-surface-variant);margin-bottom:0.25rem;">Overview</p>
+    <h1 style="font-size:1.875rem;font-weight:800;letter-spacing:-0.02em;color:#1e3a5f;" id="dash-greeting">Good Morning, Alex 👋</h1>
+    <p style="font-size:0.8125rem;color:var(--on-surface-variant);margin-top:0.25rem;" id="dash-date"></p>
+  </div>
+
+  <!-- Hero KPI Bento Grid -->
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;" id="kpi-grid">
+    <!-- Revenue Card (2 cols) -->
+    <div class="card-hero" style="grid-column:span 2;padding:2rem;min-height:13rem;display:flex;flex-direction:column;justify-content:space-between;">
+      <div>
+        <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.15em;color:var(--on-primary-container);margin-bottom:0.5rem;">Total Revenue (Today)</p>
+        <h2 id="kpi-revenue" style="font-size:2.75rem;font-weight:800;letter-spacing:-0.03em;color:#fff;" class="text-rupiah">—</h2>
+      </div>
+      <div style="display:flex;align-items:center;gap:0.75rem;">
+        <div id="kpi-rev-badge" style="background:rgba(255,255,255,0.1);padding:0.25rem 0.75rem;border-radius:9999px;display:flex;align-items:center;gap:0.25rem;">
+          <span class="material-symbols-outlined" style="font-size:1rem;color:#4ade80;">trending_up</span>
+          <span id="kpi-rev-pct" style="font-size:0.75rem;font-weight:600;color:#fff;">+0%</span>
+        </div>
+        <span style="font-size:0.75rem;color:var(--on-primary-container);font-style:italic;">vs yesterday</span>
+      </div>
+    </div>
+
+    <!-- Orders Card -->
+    <div class="card" style="padding:1.5rem;display:flex;flex-direction:column;justify-content:space-between;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div style="background:var(--surface-container-high);padding:0.5rem;border-radius:0.5rem;">
+          <span class="material-symbols-outlined" style="color:var(--primary-container);">shopping_bag</span>
+        </div>
+        <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--on-surface-variant);font-weight:700;">Daily Orders</p>
+      </div>
+      <div>
+        <h3 id="kpi-orders" style="font-size:2rem;font-weight:800;letter-spacing:-0.02em;color:var(--on-surface);">—</h3>
+        <p style="font-size:0.75rem;color:var(--on-surface-variant);margin-top:0.25rem;">transactions today</p>
+      </div>
+    </div>
+
+    <!-- Stock Card -->
+    <div class="card" style="padding:1.5rem;display:flex;flex-direction:column;justify-content:space-between;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div style="background:var(--surface-container-high);padding:0.5rem;border-radius:0.5rem;">
+          <span class="material-symbols-outlined" style="color:var(--primary-container);">inventory</span>
+        </div>
+        <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--on-surface-variant);font-weight:700;">Stock Value</p>
+      </div>
+      <div>
+        <h3 id="kpi-stock" style="font-size:2rem;font-weight:800;letter-spacing:-0.02em;color:var(--on-surface);" class="text-rupiah">—</h3>
+        <p id="kpi-skus" style="font-size:0.75rem;color:var(--on-surface-variant);margin-top:0.25rem;">— active SKUs</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail Grid -->
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:2rem;">
+
+    <!-- Critical Stock Alerts (2 cols) -->
+    <div style="grid-column:span 2;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+        <h2 style="font-size:1rem;font-weight:700;color:#1e3a5f;">Critical Stock Alerts</h2>
+        <button class="btn btn-ghost btn-sm" onclick="navigate('/low-stock')" style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;">
+          View All <span class="material-symbols-outlined" style="font-size:0.875rem;">arrow_forward</span>
+        </button>
+      </div>
+      <div class="card" style="overflow:hidden;">
+        <table class="data-table" id="stock-alerts-table">
+          <thead>
+            <tr><th>Product</th><th>SKU</th><th>Stock</th><th>Status</th><th></th></tr>
+          </thead>
+          <tbody id="stock-alerts-body">
+            <tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--outline);">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Recent Sales -->
+    <div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+        <h2 style="font-size:1rem;font-weight:700;color:#1e3a5f;">Recent Sales</h2>
+        <button onclick="navigate('/transactions')" style="background:none;border:none;cursor:pointer;color:var(--on-surface-variant);">
+          <span class="material-symbols-outlined">more_horiz</span>
+        </button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:0.75rem;" id="recent-sales-list">
+        <div class="skeleton" style="height:5rem;border-radius:0.75rem;"></div>
+        <div class="skeleton" style="height:5rem;border-radius:0.75rem;"></div>
+        <div class="skeleton" style="height:5rem;border-radius:0.75rem;"></div>
+      </div>
+
+      <!-- Audit CTA -->
+      <div class="card" style="margin-top:1.5rem;padding:1.5rem;border:2px dashed var(--outline-variant);background:var(--secondary-container);position:relative;overflow:hidden;">
+        <span class="material-symbols-outlined" style="position:absolute;right:-1rem;bottom:-1rem;font-size:5rem;color:rgba(0,0,0,0.05);transform:rotate(-12deg);">inventory_2</span>
+        <h4 style="font-size:0.875rem;font-weight:700;color:var(--on-secondary-container);margin-bottom:0.5rem;">Run Quick Audit?</h4>
+        <p style="font-size:0.75rem;color:var(--on-secondary-container);opacity:0.7;margin-bottom:1rem;">Validate physical stock vs digital records.</p>
+        <button class="btn btn-primary btn-sm" onclick="navigate('/inventory')">Start Audit</button>
+      </div>
+    </div>
+
+  </div><!-- /detail grid -->
+</div>
+
+<script type="module">
+import { DashboardAPI } from '/js/api.js';
+import { formatRupiah, formatRelativeTime, getStockStatus } from '/js/utils.js';
+
+async function load() {
+  // Greeting
+  const hour = new Date().getHours();
+  const greet = hour < 12 ? 'Good Morning' : hour < 17 ? 'Good Afternoon' : 'Good Evening';
+  document.getElementById('dash-greeting').textContent = `${greet}, Alex 👋`;
+  document.getElementById('dash-date').textContent = new Date().toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+
+  try {
+    const data = await DashboardAPI.getSummary();
+
+    // KPI
+    document.getElementById('kpi-revenue').textContent = formatRupiah(data.revenue.today);
+    document.getElementById('kpi-orders').textContent  = data.orders.today;
+    document.getElementById('kpi-stock').textContent   = formatRupiah(data.inventory.stock_value);
+    document.getElementById('kpi-skus').textContent    = `${data.inventory.total_skus} active SKUs`;
+
+    const pct = data.revenue.change_pct;
+    const icon = pct >= 0 ? 'trending_up' : 'trending_down';
+    const color = pct >= 0 ? '#4ade80' : '#f87171';
+    document.getElementById('kpi-rev-pct').textContent = `${pct >= 0 ? '+' : ''}${pct}%`;
+    document.getElementById('kpi-rev-badge').querySelector('.material-symbols-outlined').textContent = icon;
+    document.getElementById('kpi-rev-badge').querySelector('.material-symbols-outlined').style.color = color;
+
+    // Critical Stock Table
+    const tbody = document.getElementById('stock-alerts-body');
+    if (!data.critical_stock.length) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--outline);">✅ All products have sufficient stock</td></tr>`;
+    } else {
+      tbody.innerHTML = data.critical_stock.map(p => {
+        const s = getStockStatus(p.stock, p.stock_min);
+        return `<tr>
+          <td>
+            <div style="display:flex;align-items:center;gap:0.75rem;">
+              <div style="width:2.5rem;height:2.5rem;background:var(--surface-container-low);border-radius:0.5rem;display:flex;align-items:center;justify-content:center;">
+                <span class="material-symbols-outlined" style="color:var(--outline);font-size:1.125rem;">smartphone</span>
+              </div>
+              <div>
+                <p style="font-size:0.875rem;font-weight:700;">${p.name}</p>
+                <p style="font-size:0.625rem;color:var(--on-surface-variant);text-transform:uppercase;">${p.brand} · ${p.category}</p>
+              </div>
+            </div>
+          </td>
+          <td><span style="font-family:monospace;font-size:0.75rem;color:var(--on-surface-variant);">${p.sku}</span></td>
+          <td><span style="font-weight:700;color:${p.stock===0?'var(--error)':'inherit'}">${p.stock}</span></td>
+          <td><span class="badge ${s.class}">${s.label}</span></td>
+          <td><button class="btn btn-ghost btn-sm" onclick="navigate('/product-detail?id=${p.id}')"><span class="material-symbols-outlined" style="font-size:1rem;">edit</span></button></td>
+        </tr>`;
+      }).join('');
+    }
+
+    // Recent Sales
+    const salesList = document.getElementById('recent-sales-list');
+    if (!data.recent_transactions.length) {
+      salesList.innerHTML = `<div class="card" style="padding:1.5rem;text-align:center;color:var(--outline);">No transactions today</div>`;
+    } else {
+      salesList.innerHTML = data.recent_transactions.map((t, i) => {
+        const items = (t.transaction_items||[]).map(i=>i.product_name).join(', ');
+        const initials = (t.customer_name||'W').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+        return `<div class="card" style="padding:1rem;display:flex;align-items:center;gap:0.75rem;opacity:${1-(i*0.15)}">
+          <div style="width:2.5rem;height:2.5rem;border-radius:50%;background:var(--primary-container);color:var(--on-primary);display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;flex-shrink:0;">${initials}</div>
+          <div style="flex:1;min-width:0;">
+            <p style="font-size:0.875rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${t.customer_name}</p>
+            <p style="font-size:0.6875rem;color:var(--on-surface-variant);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${items || t.txn_number} · ${formatRelativeTime(t.created_at)}</p>
+          </div>
+          <p style="font-size:0.875rem;font-weight:700;flex-shrink:0;" class="text-rupiah">${formatRupiah(t.total)}</p>
+        </div>`;
+      }).join('');
+    }
+
+  } catch (err) {
+    console.error('Dashboard load error:', err);
+    document.getElementById('kpi-revenue').textContent = formatRupiah(0);
+    document.getElementById('kpi-orders').textContent = '0';
+    document.getElementById('kpi-stock').textContent = formatRupiah(0);
+    document.getElementById('stock-alerts-body').innerHTML = `<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--error);">Failed to load data. Check your Supabase connection.</td></tr>`;
+    document.getElementById('recent-sales-list').innerHTML = `<div class="card" style="padding:1.5rem;text-align:center;color:var(--error);">${err.message}</div>`;
+  }
+}
+
+load();
+</script>

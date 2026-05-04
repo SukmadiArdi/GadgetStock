@@ -1,0 +1,158 @@
+<!-- pages/inventory.html -->
+<div class="fade-in">
+  <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:2rem;">
+    <div>
+      <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.15em;font-weight:700;color:var(--on-surface-variant);">Catalog Overview</p>
+      <h1 style="font-size:2rem;font-weight:800;letter-spacing:-0.02em;color:#1e3a5f;">Inventory Management</h1>
+    </div>
+    <div style="display:flex;gap:0.75rem;">
+      <select id="cat-filter" class="form-input form-select" style="width:auto;" onchange="loadInventory()">
+        <option value="">All Categories</option>
+        <option value="Smartphones">Smartphones</option>
+        <option value="Wearables">Wearables</option>
+        <option value="Audio">Audio</option>
+        <option value="Accessories">Accessories</option>
+        <option value="Tablets">Tablets</option>
+        <option value="Laptops">Laptops</option>
+      </select>
+      <select id="status-filter" class="form-input form-select" style="width:auto;" onchange="loadInventory()">
+        <option value="">All Status</option>
+        <option value="in_stock">In Stock</option>
+        <option value="low_stock">Low Stock</option>
+        <option value="out_of_stock">Out of Stock</option>
+      </select>
+      <button class="btn btn-primary" onclick="navigate('/product-detail')">
+        <span class="material-symbols-outlined">add_box</span>Add Product
+      </button>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 22rem;gap:1.5rem;">
+
+    <!-- Table -->
+    <div class="card" style="overflow:hidden;">
+      <div style="overflow-x:auto;">
+        <table class="data-table">
+          <thead><tr>
+            <th>SKU</th><th>Brand</th><th>Model</th><th>Category</th>
+            <th style="text-align:right;">Unit Price</th><th>Status</th>
+            <th style="text-align:right;">Stock</th><th></th>
+          </tr></thead>
+          <tbody id="inventory-tbody">
+            <tr><td colspan="8" style="text-align:center;padding:3rem;"><div class="skeleton" style="height:1rem;"></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination" id="inventory-pagination" style="display:none;">
+        <p class="pagination-info" id="pagination-info">—</p>
+        <div class="pagination-controls" id="pagination-controls"></div>
+      </div>
+    </div>
+
+    <!-- Sidebar Info -->
+    <div style="display:flex;flex-direction:column;gap:1rem;">
+      <!-- Value card -->
+      <div class="card-hero" style="padding:1.5rem;">
+        <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--on-primary-container);margin-bottom:0.5rem;">Inventory Value</p>
+        <h3 id="inv-value" style="font-size:1.5rem;font-weight:800;color:#fff;margin-bottom:1rem;" class="text-rupiah">—</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;padding-top:1rem;border-top:1px solid rgba(255,255,255,0.1);">
+          <div>
+            <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--on-primary-container);">Low Stock</p>
+            <p id="inv-low" style="font-size:1.25rem;font-weight:700;color:#fff;">—</p>
+          </div>
+          <div>
+            <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--on-primary-container);">Out of Stock</p>
+            <p id="inv-oos" style="font-size:1.25rem;font-weight:700;color:var(--error-container);">—</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick actions -->
+      <div class="card" style="padding:1.25rem;">
+        <h4 style="font-size:0.875rem;font-weight:700;color:#1e3a5f;margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;">
+          <span class="material-symbols-outlined" style="font-size:1.125rem;">bolt</span>Quick Actions
+        </h4>
+        <div style="display:flex;flex-direction:column;gap:0.5rem;">
+          <button class="btn btn-ghost btn-sm" onclick="navigate('/low-stock')" style="justify-content:flex-start;">
+            <span class="material-symbols-outlined" style="color:var(--error);">warning</span>View Low Stock Alerts
+          </button>
+          <button class="btn btn-ghost btn-sm" onclick="navigate('/product-detail')" style="justify-content:flex-start;">
+            <span class="material-symbols-outlined">add_circle</span>Add New Product
+          </button>
+          <button class="btn btn-ghost btn-sm" onclick="navigate('/sales-report')" style="justify-content:flex-start;">
+            <span class="material-symbols-outlined">assessment</span>View Sales Report
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { ProductsAPI, DashboardAPI } from '/js/api.js';
+import { formatRupiah, getStockStatus } from '/js/utils.js';
+
+let currentPage = 1;
+const limit = 15;
+
+async function loadInventory() {
+  window.loadInventory = loadInventory;
+  const tbody = document.getElementById('inventory-tbody');
+  tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:3rem;color:var(--on-surface-variant);">Loading...</td></tr>`;
+
+  try {
+    const cat    = document.getElementById('cat-filter')?.value;
+    const status = document.getElementById('status-filter')?.value;
+    const { products, pagination } = await ProductsAPI.list({ page: currentPage, limit, category: cat, status });
+
+    if (!products.length) {
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:3rem;color:var(--outline);">No products found</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = products.map(p => {
+      const s = getStockStatus(p.stock, p.stock_min);
+      return `<tr>
+        <td><span style="font-family:monospace;font-size:0.75rem;color:var(--on-surface-variant);">${p.sku}</span></td>
+        <td style="font-weight:700;color:#1e3a5f;">${p.brand||'—'}</td>
+        <td>${p.name}</td>
+        <td style="font-size:0.8125rem;color:var(--on-surface-variant);">${p.category||'—'}</td>
+        <td style="text-align:right;font-weight:700;color:#1e3a5f;" class="text-rupiah">${formatRupiah(p.price_sell)}</td>
+        <td><span class="badge ${s.class}">${s.label}</span></td>
+        <td style="text-align:right;font-weight:700;${p.stock===0?'color:var(--error)':p.stock<=p.stock_min?'color:#b45309':''}">${p.stock}</td>
+        <td><button class="btn btn-ghost btn-sm" onclick="navigate('/product-detail?id=${p.id}')"><span class="material-symbols-outlined" style="font-size:1rem;">edit</span></button></td>
+      </tr>`;
+    }).join('');
+
+    // Pagination
+    const pag = document.getElementById('inventory-pagination');
+    pag.style.display = 'flex';
+    document.getElementById('pagination-info').textContent = `Showing ${(currentPage-1)*limit+1}–${Math.min(currentPage*limit, pagination.total)} of ${pagination.total} products`;
+    const ctrl = document.getElementById('pagination-controls');
+    ctrl.innerHTML = `
+      <button class="page-btn" onclick="changePage(${currentPage-1})" ${currentPage<=1?'disabled':''}>
+        <span class="material-symbols-outlined" style="font-size:1.125rem;">chevron_left</span>
+      </button>
+      <span class="page-btn active">${currentPage}</span>
+      <button class="page-btn" onclick="changePage(${currentPage+1})" ${currentPage>=pagination.pages?'disabled':''}>
+        <span class="material-symbols-outlined" style="font-size:1.125rem;">chevron_right</span>
+      </button>
+    `;
+
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--error);">${err.message}</td></tr>`;
+  }
+}
+
+window.changePage = function(p) { currentPage = p; loadInventory(); };
+window.loadInventory = loadInventory;
+
+// Load dashboard stats for sidebar
+DashboardAPI.getSummary().then(data => {
+  document.getElementById('inv-value').textContent = formatRupiah(data.inventory.stock_value);
+  document.getElementById('inv-low').textContent   = data.inventory.low_stock_count + ' Items';
+  document.getElementById('inv-oos').textContent   = data.inventory.out_of_stock_count + ' Items';
+}).catch(() => {});
+
+loadInventory();
+</script>

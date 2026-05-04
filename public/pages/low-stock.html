@@ -1,0 +1,99 @@
+<!-- pages/low-stock.html -->
+<div class="fade-in">
+  <div style="margin-bottom:2rem;">
+    <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.15em;font-weight:700;color:var(--on-surface-variant);">Monitoring</p>
+    <h1 style="font-size:1.875rem;font-weight:800;color:#1e3a5f;">Low Stock Alerts</h1>
+  </div>
+
+  <!-- Summary Cards -->
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:2rem;" id="alert-summary">
+    <div class="card" style="padding:1.5rem;border-left:4px solid var(--error);">
+      <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;color:var(--on-surface-variant);">Out of Stock</p>
+      <h3 id="count-oos" style="font-size:2.5rem;font-weight:800;color:var(--error);">—</h3>
+    </div>
+    <div class="card" style="padding:1.5rem;border-left:4px solid var(--error);">
+      <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;color:var(--on-surface-variant);">Critical (≤5)</p>
+      <h3 id="count-critical" style="font-size:2.5rem;font-weight:800;color:var(--error);">—</h3>
+    </div>
+    <div class="card" style="padding:1.5rem;border-left:4px solid #b45309;">
+      <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;color:var(--on-surface-variant);">Low Stock (≤10)</p>
+      <h3 id="count-low" style="font-size:2.5rem;font-weight:800;color:#b45309;">—</h3>
+    </div>
+  </div>
+
+  <!-- Product Lists -->
+  <div style="display:flex;flex-direction:column;gap:1.5rem;" id="alert-lists">
+    <div class="skeleton" style="height:8rem;border-radius:0.75rem;"></div>
+    <div class="skeleton" style="height:8rem;border-radius:0.75rem;"></div>
+  </div>
+</div>
+
+<script type="module">
+import { InventoryAPI } from '/js/api.js';
+import { formatRupiah, showToast } from '/js/utils.js';
+
+function renderGroup(title, items, badgeClass, badgeLabel, borderColor) {
+  if (!items.length) return '';
+  return `
+    <div>
+      <h2 style="font-size:0.875rem;font-weight:700;color:var(--on-surface-variant);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.75rem;">${title} (${items.length})</h2>
+      <div style="display:flex;flex-direction:column;gap:0.5rem;">
+        ${items.map(p => {
+          const pct = p.stock_min > 0 ? Math.round((p.stock / p.stock_min) * 100) : 0;
+          return `<div class="card" style="padding:1.25rem;display:flex;align-items:center;gap:1.25rem;border-left:4px solid ${borderColor};">
+            <div style="flex:1;min-width:0;">
+              <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+                <span class="badge ${badgeClass}">${badgeLabel}</span>
+                <span style="font-family:monospace;font-size:0.75rem;color:var(--on-surface-variant);">${p.sku}</span>
+              </div>
+              <p style="font-size:0.9375rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</p>
+              <div style="display:flex;align-items:center;gap:0.75rem;margin-top:0.5rem;">
+                <div style="flex:1;height:0.375rem;background:var(--surface-container-high);border-radius:9999px;overflow:hidden;">
+                  <div style="height:100%;width:${Math.min(pct,100)}%;background:${borderColor};border-radius:9999px;"></div>
+                </div>
+                <span style="font-size:0.75rem;font-weight:600;color:var(--on-surface-variant);white-space:nowrap;">${p.stock} / ${p.stock_min} min</span>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:0.5rem;flex-shrink:0;">
+              <button class="btn btn-primary btn-sm" onclick="restock('${p.id}','${p.name.replace(/'/g, "\\'")}')">
+                <span class="material-symbols-outlined" style="font-size:0.875rem;">add_box</span>Restock
+              </button>
+              <button class="btn btn-ghost btn-sm" onclick="navigate('/product-detail?id=${p.id}')">
+                <span class="material-symbols-outlined" style="font-size:0.875rem;">edit</span>Edit
+              </button>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+
+async function load() {
+  try {
+    const data = await InventoryAPI.getLowStock();
+    document.getElementById('count-oos').textContent     = data.out_of_stock.length;
+    document.getElementById('count-critical').textContent = data.critical.length;
+    document.getElementById('count-low').textContent     = data.low_stock.length;
+
+    const lists = document.getElementById('alert-lists');
+    const html = [
+      renderGroup('Out of Stock', data.out_of_stock, 'badge-critical', 'Out of Stock', 'var(--error)'),
+      renderGroup('Critical Stock', data.critical, 'badge-danger', 'Critical', 'var(--error)'),
+      renderGroup('Low Stock', data.low_stock, 'badge-warning', 'Low Stock', '#b45309')
+    ].join('');
+    lists.innerHTML = html || `<div class="card" style="padding:3rem;text-align:center;color:var(--outline);">✅ All products have healthy stock levels!</div>`;
+  } catch (err) {
+    document.getElementById('alert-lists').innerHTML = `<div class="card" style="padding:2rem;text-align:center;color:var(--error);">${err.message}</div>`;
+  }
+}
+
+window.restock = function(id, name) {
+  const qty = prompt(`Enter restock quantity for:\n${name}`);
+  if (!qty || isNaN(qty) || parseInt(qty) <= 0) return;
+  InventoryAPI.restock(id, parseInt(qty))
+    .then(() => { showToast(`Restocked ${qty} units!`, 'success'); load(); })
+    .catch(err => showToast('Restock failed: ' + err.message, 'error'));
+};
+
+load();
+</script>

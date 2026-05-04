@@ -1,0 +1,136 @@
+<!-- pages/sales-report.html -->
+<div class="fade-in">
+  <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:2rem;">
+    <div>
+      <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.15em;font-weight:700;color:var(--on-surface-variant);">Reports</p>
+      <h1 style="font-size:1.875rem;font-weight:800;color:#1e3a5f;">Daily Sales Report</h1>
+    </div>
+    <div style="display:flex;gap:0.75rem;align-items:center;">
+      <input type="date" id="report-date" class="form-input" style="max-width:12rem;" onchange="loadReport()" />
+      <button class="btn btn-secondary btn-sm" onclick="window.print()">
+        <span class="material-symbols-outlined" style="font-size:1rem;">print</span>Export
+      </button>
+    </div>
+  </div>
+
+  <!-- KPI Cards -->
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;" id="report-kpis">
+    <div class="card" style="padding:1.25rem;">
+      <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;color:var(--on-surface-variant);">Total Revenue</p>
+      <h3 id="r-revenue" style="font-size:1.5rem;font-weight:800;color:#1e3a5f;margin-top:0.25rem;" class="text-rupiah">—</h3>
+    </div>
+    <div class="card" style="padding:1.25rem;">
+      <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;color:var(--on-surface-variant);">Total Orders</p>
+      <h3 id="r-orders" style="font-size:1.5rem;font-weight:800;color:#1e3a5f;margin-top:0.25rem;">—</h3>
+    </div>
+    <div class="card" style="padding:1.25rem;">
+      <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;color:var(--on-surface-variant);">Avg. Order Value</p>
+      <h3 id="r-avg" style="font-size:1.5rem;font-weight:800;color:#1e3a5f;margin-top:0.25rem;" class="text-rupiah">—</h3>
+    </div>
+    <div class="card" style="padding:1.25rem;">
+      <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;color:var(--on-surface-variant);">Items Sold</p>
+      <h3 id="r-items" style="font-size:1.5rem;font-weight:800;color:#1e3a5f;margin-top:0.25rem;">—</h3>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+    <!-- Hourly Chart -->
+    <div class="card" style="padding:1.5rem;">
+      <h2 style="font-size:0.875rem;font-weight:700;color:#1e3a5f;margin-bottom:1.25rem;">Revenue by Hour</h2>
+      <div id="hourly-chart" style="display:flex;align-items:flex-end;gap:3px;height:10rem;"></div>
+      <div id="hour-labels" style="display:flex;gap:3px;margin-top:0.375rem;"></div>
+    </div>
+
+    <!-- Top Products -->
+    <div class="card" style="padding:1.5rem;">
+      <h2 style="font-size:0.875rem;font-weight:700;color:#1e3a5f;margin-bottom:1.25rem;">Top Products</h2>
+      <div id="top-products" style="display:flex;flex-direction:column;gap:0.75rem;"></div>
+    </div>
+  </div>
+
+  <!-- Transactions Table -->
+  <div class="card" style="margin-top:1.5rem;overflow:hidden;">
+    <div style="padding:1rem 1.5rem;border-bottom:1px solid rgba(196,198,207,0.1);">
+      <h2 style="font-size:0.875rem;font-weight:700;color:#1e3a5f;">Transactions</h2>
+    </div>
+    <table class="data-table">
+      <thead><tr><th>TXN #</th><th>Time</th><th>Customer</th><th style="text-align:right;">Total</th><th>Method</th></tr></thead>
+      <tbody id="report-txn-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script type="module">
+import { ReportsAPI } from '/js/api.js';
+import { formatRupiah, formatDate, todayISO } from '/js/utils.js';
+
+document.getElementById('report-date').value = todayISO();
+
+async function loadReport() {
+  window.loadReport = loadReport;
+  const date = document.getElementById('report-date').value || todayISO();
+  try {
+    const data = await ReportsAPI.daily(date);
+    const { totalRevenue, totalOrders, avgOrderValue, totalItemsSold } = data.summary;
+
+    document.getElementById('r-revenue').textContent = formatRupiah(totalRevenue);
+    document.getElementById('r-orders').textContent  = totalOrders;
+    document.getElementById('r-avg').textContent     = formatRupiah(avgOrderValue);
+    document.getElementById('r-items').textContent   = totalItemsSold;
+
+    // Hourly chart
+    const maxRev = Math.max(...data.hourly.map(h=>h.revenue), 1);
+    const peakHours = [9,10,11,12,13,14,15,16,17,18,19,20]; // business hours
+    const chartDiv = document.getElementById('hourly-chart');
+    const labelDiv = document.getElementById('hour-labels');
+    chartDiv.innerHTML = data.hourly.filter(h=>peakHours.includes(h.hour)).map(h => {
+      const pct = Math.max(4, (h.revenue / maxRev) * 100);
+      const isActive = h.revenue > 0;
+      return `<div title="${h.label}: ${formatRupiah(h.revenue)}" style="flex:1;background:${isActive?'var(--primary-container)':'var(--surface-container-high)'};border-radius:4px 4px 0 0;height:${pct}%;cursor:default;transition:height 0.5s;"></div>`;
+    }).join('');
+    labelDiv.innerHTML = data.hourly.filter(h=>peakHours.includes(h.hour)).map(h =>
+      `<div style="flex:1;font-size:0.5rem;text-align:center;color:var(--on-surface-variant);">${h.hour}</div>`
+    ).join('');
+
+    // Top products
+    const topDiv = document.getElementById('top-products');
+    if (!data.topProducts.length) { topDiv.innerHTML = `<p style="color:var(--outline);font-size:0.875rem;">No sales data</p>`; }
+    else {
+      const maxRev2 = data.topProducts[0].revenue;
+      topDiv.innerHTML = data.topProducts.map((p,i) => `
+        <div style="display:flex;align-items:center;gap:0.75rem;">
+          <span style="font-size:0.75rem;font-weight:700;color:var(--on-surface-variant);width:1rem;text-align:center;">${i+1}</span>
+          <div style="flex:1;">
+            <div style="display:flex;justify-content:space-between;font-size:0.8125rem;margin-bottom:0.25rem;">
+              <span style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:10rem;">${p.name}</span>
+              <span style="font-weight:700;" class="text-rupiah">${formatRupiah(p.revenue)}</span>
+            </div>
+            <div style="height:0.375rem;background:var(--surface-container-high);border-radius:9999px;overflow:hidden;">
+              <div style="height:100%;width:${(p.revenue/maxRev2*100).toFixed(0)}%;background:var(--primary-container);border-radius:9999px;"></div>
+            </div>
+          </div>
+          <span style="font-size:0.75rem;color:var(--on-surface-variant);">×${p.qty}</span>
+        </div>`).join('');
+    }
+
+    // Transactions table
+    const tbody = document.getElementById('report-txn-tbody');
+    if (!data.transactions.length) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--outline);">No transactions on this date</td></tr>`;
+    } else {
+      tbody.innerHTML = data.transactions.map(t => `<tr>
+        <td><span style="font-family:monospace;font-size:0.75rem;font-weight:700;">${t.txn_number}</span></td>
+        <td style="font-size:0.8125rem;">${formatDate(t.created_at,'time')}</td>
+        <td style="font-size:0.8125rem;">${t.customer_name||'Walk-in'}</td>
+        <td style="text-align:right;font-weight:700;" class="text-rupiah">${formatRupiah(t.total)}</td>
+        <td style="text-transform:capitalize;font-size:0.8125rem;">${t.payment_method||'—'}</td>
+      </tr>`).join('');
+    }
+  } catch (err) {
+    document.getElementById('r-revenue').textContent = formatRupiah(0);
+    document.getElementById('report-txn-tbody').innerHTML = `<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--error);">${err.message}</td></tr>`;
+  }
+}
+
+loadReport();
+</script>

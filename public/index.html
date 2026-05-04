@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="GadgetStock — Modern Retail POS System for gadget stores" />
+  <title>GadgetStock POS</title>
+
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📱</text></svg>" />
+
+  <!-- Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+
+  <!-- Global Styles -->
+  <link rel="stylesheet" href="/css/main.css" />
+</head>
+<body>
+
+<!-- ═══ App Shell ════════════════════════════════════════════════ -->
+<div id="app">
+
+  <!-- ── Sidebar (Desktop) ──────────────────────────────────── -->
+  <aside id="sidebar">
+    <div class="nav-logo">
+      <div class="nav-logo-icon">
+        <span class="material-symbols-outlined icon-filled">storefront</span>
+      </div>
+      <div>
+        <h1>GadgetStock</h1>
+        <p id="terminal-label">Terminal 01</p>
+      </div>
+    </div>
+
+    <nav class="nav-items">
+      <a class="nav-item active" data-nav="Dashboard" onclick="navigate('/dashboard')">
+        <span class="material-symbols-outlined">dashboard</span>
+        <span>Dashboard</span>
+      </a>
+      <a class="nav-item" data-nav="POS" onclick="navigate('/pos')">
+        <span class="material-symbols-outlined">point_of_sale</span>
+        <span>POS</span>
+      </a>
+      <a class="nav-item" data-nav="Inventory" onclick="navigate('/inventory')">
+        <span class="material-symbols-outlined">inventory_2</span>
+        <span>Inventory</span>
+      </a>
+      <a class="nav-item" data-nav="Transactions" onclick="navigate('/transactions')">
+        <span class="material-symbols-outlined">history</span>
+        <span>Transactions</span>
+      </a>
+      <a class="nav-item" data-nav="Reports" onclick="navigate('/sales-report')">
+        <span class="material-symbols-outlined">assessment</span>
+        <span>Reports</span>
+      </a>
+      <a class="nav-item" data-nav="Analytics" onclick="navigate('/analytics')">
+        <span class="material-symbols-outlined">analytics</span>
+        <span>Analytics</span>
+      </a>
+    </nav>
+
+    <button class="nav-new-sale" onclick="navigate('/pos')">
+      <span class="material-symbols-outlined">add_circle</span>
+      <span>New Sale</span>
+    </button>
+  </aside>
+
+  <!-- ── Main Content ─────────────────────────────────────── -->
+  <div id="main-content">
+
+    <!-- Top Bar -->
+    <header id="topbar">
+      <div style="display:flex;align-items:center;gap:1rem;flex:1;">
+        <!-- Mobile menu toggle -->
+        <button class="topbar-icon-btn" id="mobile-menu-btn" style="display:none;" onclick="document.getElementById('sidebar').classList.toggle('open')">
+          <span class="material-symbols-outlined">menu</span>
+        </button>
+
+        <div class="topbar-search">
+          <span class="material-symbols-outlined" style="font-size:1.125rem;color:#94a3b8;">search</span>
+          <input type="text" id="global-search" placeholder="Search products, orders, SKU..." />
+        </div>
+      </div>
+
+      <div class="topbar-actions">
+        <button class="topbar-icon-btn" id="notif-btn" title="Notifications" onclick="navigate('/low-stock')">
+          <span class="material-symbols-outlined">notifications</span>
+          <span class="notif-dot" id="notif-dot" style="display:none;"></span>
+        </button>
+        <button class="topbar-icon-btn" title="Settings">
+          <span class="material-symbols-outlined">settings</span>
+        </button>
+        <div class="topbar-divider"></div>
+        <div class="topbar-user">
+          <div class="topbar-user-info">
+            <p id="user-name">Alex Manager</p>
+            <span id="user-role">Terminal Admin</span>
+          </div>
+          <div class="topbar-avatar" id="user-avatar">AM</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Page Content (SPA View) -->
+    <main id="page-content">
+      <!-- Pages load here via router -->
+      <div style="display:flex;align-items:center;justify-content:center;height:60vh;">
+        <div style="text-align:center;">
+          <span class="material-symbols-outlined" style="font-size:3rem;color:var(--outline);display:block;margin-bottom:1rem;">storefront</span>
+          <p style="color:var(--on-surface-variant);">Loading GadgetStock...</p>
+        </div>
+      </div>
+    </main>
+
+  </div><!-- /main-content -->
+
+</div><!-- /app -->
+
+<!-- ── Bottom Nav (Mobile) ───────────────────────────────── -->
+<nav id="bottom-nav">
+  <a class="bottom-nav-item active" data-nav="Dashboard" onclick="navigate('/dashboard')">
+    <span class="material-symbols-outlined">dashboard</span>
+    <span>Dash</span>
+  </a>
+  <a class="bottom-nav-item" data-nav="POS" onclick="navigate('/pos')">
+    <span class="material-symbols-outlined">point_of_sale</span>
+    <span>POS</span>
+  </a>
+  <button class="bottom-nav-fab" onclick="navigate('/pos')">
+    <span class="material-symbols-outlined">add</span>
+  </button>
+  <a class="bottom-nav-item" data-nav="Inventory" onclick="navigate('/inventory')">
+    <span class="material-symbols-outlined">inventory_2</span>
+    <span>Stock</span>
+  </a>
+  <a class="bottom-nav-item" data-nav="Analytics" onclick="navigate('/analytics')">
+    <span class="material-symbols-outlined">analytics</span>
+    <span>Stats</span>
+  </a>
+</nav>
+
+<!-- Toast notifications container -->
+<div id="toast-container"></div>
+
+<!-- ═══ App Bootstrap ════════════════════════════════════════════ -->
+<script type="module">
+  import { initRouter, navigate } from '/js/router.js';
+  import State from '/js/state.js';
+
+  // Make navigate global for onclick attributes
+  window.navigate = navigate;
+
+  // Mobile responsive: show menu button, hide sidebar on small screens
+  function handleResize() {
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const isMobile = window.innerWidth < 768;
+    if (mobileMenuBtn) mobileMenuBtn.style.display = isMobile ? 'flex' : 'none';
+    // Close sidebar overlay if resizing back to desktop
+    if (!isMobile) document.getElementById('sidebar')?.classList.remove('open');
+  }
+  window.addEventListener('resize', handleResize);
+  handleResize();
+
+  // Close sidebar when clicking outside on mobile
+  document.addEventListener('click', (e) => {
+    const sidebar = document.getElementById('sidebar');
+    const menuBtn = document.getElementById('mobile-menu-btn');
+    if (window.innerWidth < 768 && sidebar?.classList.contains('open')) {
+      if (!sidebar.contains(e.target) && !menuBtn?.contains(e.target)) {
+        sidebar.classList.remove('open');
+      }
+    }
+  });
+
+  // Global search → navigate to relevant page
+  document.getElementById('global-search')?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      const val = e.target.value.trim();
+      if (val) navigate(`/inventory?search=${encodeURIComponent(val)}`);
+    }
+  });
+
+  // Sync user info in topbar from State
+  function syncUserUI() {
+    const u = State.currentUser;
+    const nameEl = document.getElementById('user-name');
+    const roleEl = document.getElementById('user-role');
+    const avatarEl = document.getElementById('user-avatar');
+    const terminalEl = document.getElementById('terminal-label');
+    if (nameEl) nameEl.textContent = u.name;
+    if (roleEl) roleEl.textContent = u.role === 'manager' ? 'Store Manager' : 'Cashier';
+    if (avatarEl) avatarEl.textContent = u.initials;
+    if (terminalEl) terminalEl.textContent = u.terminal;
+  }
+  State.on('user', syncUserUI);
+  syncUserUI();
+
+  // Check for low stock notifications
+  async function checkLowStock() {
+    try {
+      const data = await fetch('/api/inventory/low-stock').then(r => r.ok ? r.json() : null);
+      if (data && data.total > 0) {
+        document.getElementById('notif-dot').style.display = 'block';
+      }
+    } catch (_) { /* silent fail */ }
+  }
+  checkLowStock();
+
+  // Boot the router
+  initRouter();
+</script>
+
+</body>
+</html>

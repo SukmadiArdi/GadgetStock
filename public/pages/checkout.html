@@ -1,0 +1,181 @@
+<!-- pages/checkout.html - Checkout Screen -->
+<div class="fade-in" style="max-width:56rem;margin:0 auto;">
+
+  <!-- Header -->
+  <div style="display:flex;align-items:center;gap:1rem;margin-bottom:2rem;">
+    <button class="btn btn-ghost btn-sm" onclick="navigate('/pos')">
+      <span class="material-symbols-outlined">arrow_back</span>Back to POS
+    </button>
+    <div>
+      <h1 style="font-size:1.5rem;font-weight:800;color:#1e3a5f;">Checkout</h1>
+      <p style="font-size:0.75rem;color:var(--on-surface-variant);">Complete the transaction</p>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1.2fr;gap:2rem;">
+
+    <!-- Left: Order Summary -->
+    <div>
+      <h2 style="font-size:0.875rem;font-weight:700;color:var(--on-surface-variant);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:1rem;">Order Summary</h2>
+      <div class="card" style="overflow:hidden;margin-bottom:1rem;" id="order-summary"></div>
+
+      <!-- Totals -->
+      <div class="card" style="padding:1.25rem;">
+        <div style="display:flex;flex-direction:column;gap:0.625rem;">
+          <div style="display:flex;justify-content:space-between;font-size:0.875rem;color:var(--on-surface-variant);">
+            <span>Subtotal</span><span id="co-subtotal" class="text-rupiah">—</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:0.875rem;color:var(--on-surface-variant);">
+            <span>Tax (8.5%)</span><span id="co-tax" class="text-rupiah">—</span>
+          </div>
+          <div style="border-top:1px solid var(--outline-variant);padding-top:0.875rem;display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:1rem;font-weight:700;color:#1e3a5f;">Grand Total</span>
+            <span id="co-total" style="font-size:1.5rem;font-weight:800;color:#1e3a5f;" class="text-rupiah">—</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Payment -->
+    <div>
+      <h2 style="font-size:0.875rem;font-weight:700;color:var(--on-surface-variant);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:1rem;">Payment Method</h2>
+
+      <!-- Payment Options -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:1.5rem;">
+        <div class="pay-option selected" data-method="cash" onclick="selectMethod(this)">
+          <span class="material-symbols-outlined">payments</span>
+          <span>Cash</span>
+        </div>
+        <div class="pay-option" data-method="qris" onclick="selectMethod(this)">
+          <span class="material-symbols-outlined">qr_code_scanner</span>
+          <span>QRIS</span>
+        </div>
+        <div class="pay-option" data-method="debit" onclick="selectMethod(this)">
+          <span class="material-symbols-outlined">credit_card</span>
+          <span>Debit Card</span>
+        </div>
+        <div class="pay-option" data-method="credit" onclick="selectMethod(this)">
+          <span class="material-symbols-outlined">credit_score</span>
+          <span>Credit Card</span>
+        </div>
+      </div>
+
+      <!-- Cash Form -->
+      <div id="cash-form" class="card" style="padding:1.25rem;margin-bottom:1.5rem;">
+        <div class="form-group" style="margin-bottom:1rem;">
+          <label class="form-label">Cash Received</label>
+          <input type="number" id="cash-input" class="form-input" placeholder="Enter amount..." min="0" oninput="calcChange()" />
+        </div>
+        <div style="background:var(--surface-container-low);border-radius:0.5rem;padding:0.875rem;display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:0.8125rem;font-weight:600;color:var(--on-surface-variant);">Change</span>
+          <span id="change-amount" style="font-size:1.25rem;font-weight:800;color:#1e3a5f;" class="text-rupiah">Rp 0</span>
+        </div>
+      </div>
+
+      <!-- Non-cash notice -->
+      <div id="noncash-form" class="card" style="padding:1.25rem;margin-bottom:1.5rem;text-align:center;display:none;">
+        <span class="material-symbols-outlined" style="font-size:2.5rem;color:var(--on-surface-variant);display:block;margin-bottom:0.5rem;">qr_code_scanner</span>
+        <p style="font-size:0.875rem;font-weight:600;color:var(--on-surface-variant);" id="noncash-label">Please present QR / card for payment</p>
+      </div>
+
+      <!-- Confirm Button -->
+      <button class="btn btn-primary btn-full btn-lg" onclick="confirmPayment()" id="confirm-btn">
+        <span class="material-symbols-outlined">check_circle</span>
+        Confirm Payment
+      </button>
+      <p id="confirm-error" style="color:var(--error);font-size:0.75rem;margin-top:0.5rem;display:none;"></p>
+    </div>
+  </div>
+</div>
+
+<style>
+.pay-option{display:flex;flex-direction:column;align-items:center;gap:0.5rem;padding:1.25rem;border:2px solid var(--outline-variant);border-radius:0.75rem;cursor:pointer;transition:all 0.15s;font-size:0.8125rem;font-weight:600;color:var(--on-surface-variant);}
+.pay-option:hover{border-color:var(--primary-container);color:#1e3a5f;}
+.pay-option.selected{border-color:var(--primary-container);background:rgba(0,31,63,0.05);color:#1e3a5f;}
+.pay-option .material-symbols-outlined{font-size:1.75rem;}
+</style>
+
+<script type="module">
+import State from '/js/state.js';
+import { TransactionsAPI } from '/js/api.js';
+import { formatRupiah, showToast } from '/js/utils.js';
+
+let selectedMethod = 'cash';
+let totals = { subtotal: 0, tax: 0, total: 0 };
+
+function init() {
+  if (!State.cart.length) { navigate('/pos'); return; }
+  totals = State.getCartTotals();
+
+  document.getElementById('co-subtotal').textContent = formatRupiah(totals.subtotal);
+  document.getElementById('co-tax').textContent = formatRupiah(totals.tax);
+  document.getElementById('co-total').textContent = formatRupiah(totals.total);
+
+  const summary = document.getElementById('order-summary');
+  summary.innerHTML = State.cart.map(item => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:0.875rem 1.25rem;border-bottom:1px solid rgba(196,198,207,0.1);">
+      <div style="flex:1;min-width:0;">
+        <p style="font-size:0.875rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.name}</p>
+        <p style="font-size:0.75rem;color:var(--on-surface-variant);">x${item.qty} × ${formatRupiah(item.price)}</p>
+      </div>
+      <span style="font-weight:700;font-size:0.875rem;" class="text-rupiah">${formatRupiah(item.price * item.qty)}</span>
+    </div>
+  `).join('');
+}
+
+window.selectMethod = function(el) {
+  document.querySelectorAll('.pay-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedMethod = el.dataset.method;
+  const cashForm = document.getElementById('cash-form');
+  const ncForm = document.getElementById('noncash-form');
+  if (selectedMethod === 'cash') { cashForm.style.display='block'; ncForm.style.display='none'; }
+  else {
+    cashForm.style.display='none'; ncForm.style.display='block';
+    const labels = { qris:'Present QR code for payment', debit:'Swipe or tap debit card', credit:'Swipe or tap credit card' };
+    document.getElementById('noncash-label').textContent = labels[selectedMethod] || '';
+  }
+};
+
+window.calcChange = function() {
+  const cash = parseInt(document.getElementById('cash-input').value) || 0;
+  const change = Math.max(0, cash - totals.total);
+  document.getElementById('change-amount').textContent = formatRupiah(change);
+};
+
+window.confirmPayment = async function() {
+  const btn = document.getElementById('confirm-btn');
+  const errEl = document.getElementById('confirm-error');
+  errEl.style.display = 'none';
+
+  if (selectedMethod === 'cash') {
+    const cash = parseInt(document.getElementById('cash-input').value) || 0;
+    if (cash < totals.total) { errEl.textContent = 'Cash received is less than total amount'; errEl.style.display = 'block'; return; }
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = `<span class="material-symbols-outlined" style="animation:spin 1s linear infinite">refresh</span> Processing...`;
+
+  try {
+    const txn = await TransactionsAPI.create({
+      items: State.cart.map(i => ({ product_id: i.product_id, product_name: i.name, product_sku: i.sku, quantity: i.qty, unit_price: i.price })),
+      customer_name: State.currentUser.customerName || 'Walk-in Customer',
+      payment_method: selectedMethod,
+      cash_received: selectedMethod === 'cash' ? (parseInt(document.getElementById('cash-input').value)||0) : null,
+      terminal: State.settings.terminal
+    });
+
+    State.setCurrentTxn(txn);
+    State.clearCart();
+    navigate('/receipt');
+  } catch (err) {
+    errEl.textContent = err.message;
+    errEl.style.display = 'block';
+    btn.disabled = false;
+    btn.innerHTML = `<span class="material-symbols-outlined">check_circle</span> Confirm Payment`;
+    showToast('Payment failed: ' + err.message, 'error');
+  }
+};
+
+init();
+</script>

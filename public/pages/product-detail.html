@@ -1,0 +1,196 @@
+<!-- pages/product-detail.html -->
+<div class="fade-in" style="max-width:52rem;margin:0 auto;">
+
+  <!-- Breadcrumb -->
+  <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:2rem;font-size:0.75rem;color:var(--on-surface-variant);">
+    <span onclick="navigate('/inventory')" style="cursor:pointer;hover:underline;">Inventory</span>
+    <span class="material-symbols-outlined" style="font-size:0.875rem;">chevron_right</span>
+    <span id="breadcrumb-title" style="font-weight:600;color:var(--on-surface);">New Product</span>
+  </div>
+
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;">
+    <h1 id="page-title" style="font-size:1.75rem;font-weight:800;color:#1e3a5f;">Add Product</h1>
+    <button id="delete-btn" class="btn btn-danger btn-sm" style="display:none;" onclick="deleteProduct()">
+      <span class="material-symbols-outlined">delete</span>Delete
+    </button>
+  </div>
+
+  <form id="product-form" style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;" onsubmit="saveProduct(event)">
+
+    <!-- Left Column -->
+    <div style="display:flex;flex-direction:column;gap:1.25rem;">
+      <div class="form-group">
+        <label class="form-label">Product Name *</label>
+        <input type="text" id="f-name" class="form-input" placeholder="e.g. iPhone 15 Pro Max" required />
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+        <div class="form-group">
+          <label class="form-label">Brand</label>
+          <input type="text" id="f-brand" class="form-input" placeholder="Apple" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">SKU *</label>
+          <input type="text" id="f-sku" class="form-input" placeholder="APL-IP15-P-256" required />
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Category *</label>
+        <select id="f-category" class="form-input form-select" required>
+          <option value="">Select category...</option>
+          <option value="Smartphones">Smartphones</option>
+          <option value="Wearables">Wearables</option>
+          <option value="Audio">Audio</option>
+          <option value="Accessories">Accessories</option>
+          <option value="Tablets">Tablets</option>
+          <option value="Laptops">Laptops</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea id="f-desc" class="form-input form-textarea" placeholder="Product description..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Product Image URL</label>
+        <input type="url" id="f-image" class="form-input" placeholder="https://..." />
+      </div>
+    </div>
+
+    <!-- Right Column -->
+    <div style="display:flex;flex-direction:column;gap:1.25rem;">
+
+      <!-- Image Preview -->
+      <div style="background:var(--surface-container-low);border-radius:0.75rem;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;overflow:hidden;" id="img-preview">
+        <span class="material-symbols-outlined" style="font-size:4rem;color:var(--outline);">image</span>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+        <div class="form-group">
+          <label class="form-label">Selling Price (Rp) *</label>
+          <input type="number" id="f-price-sell" class="form-input" placeholder="18899000" min="0" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Purchase Price (Rp)</label>
+          <input type="number" id="f-price-buy" class="form-input" placeholder="15000000" min="0" />
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+        <div class="form-group">
+          <label class="form-label">Current Stock</label>
+          <input type="number" id="f-stock" class="form-input" placeholder="0" min="0" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Min Stock (Alert)</label>
+          <input type="number" id="f-stock-min" class="form-input" placeholder="5" min="0" />
+        </div>
+      </div>
+
+      <!-- Profit Indicator -->
+      <div class="card" style="padding:1rem;background:var(--surface-container-low);border:none;">
+        <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;color:var(--on-surface-variant);margin-bottom:0.5rem;">Margin Estimate</p>
+        <p id="margin-text" style="font-size:1rem;font-weight:700;color:#1e3a5f;">— %</p>
+      </div>
+    </div>
+
+    <!-- Actions (full width) -->
+    <div style="grid-column:span 2;display:flex;gap:0.75rem;justify-content:flex-end;padding-top:1rem;border-top:1px solid var(--outline-variant);">
+      <button type="button" class="btn btn-ghost" onclick="navigate('/inventory')">Cancel</button>
+      <button type="submit" class="btn btn-primary" id="save-btn">
+        <span class="material-symbols-outlined">save</span><span id="save-label">Save Product</span>
+      </button>
+    </div>
+  </form>
+</div>
+
+<script type="module">
+import { ProductsAPI } from '/js/api.js';
+import { formatRupiah, getHashParams, showToast, showConfirm } from '/js/utils.js';
+
+let productId = null;
+
+function calcMargin() {
+  const sell = parseInt(document.getElementById('f-price-sell').value) || 0;
+  const buy  = parseInt(document.getElementById('f-price-buy').value) || 0;
+  const el   = document.getElementById('margin-text');
+  if (sell && buy) {
+    const pct = (((sell - buy) / buy) * 100).toFixed(1);
+    el.textContent = `${formatRupiah(sell - buy)} (${pct}%)`;
+    el.style.color = pct > 0 ? '#15803d' : 'var(--error)';
+  } else el.textContent = '— %';
+}
+
+document.getElementById('f-price-sell').addEventListener('input', calcMargin);
+document.getElementById('f-price-buy').addEventListener('input', calcMargin);
+document.getElementById('f-image').addEventListener('input', () => {
+  const url = document.getElementById('f-image').value;
+  const prev = document.getElementById('img-preview');
+  if (url) prev.innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:contain;" onerror="this.style.display='none'">`;
+  else prev.innerHTML = `<span class="material-symbols-outlined" style="font-size:4rem;color:var(--outline);">image</span>`;
+});
+
+async function init() {
+  const params = getHashParams();
+  if (params.id) {
+    productId = params.id;
+    document.getElementById('page-title').textContent = 'Edit Product';
+    document.getElementById('save-label').textContent = 'Save Changes';
+    document.getElementById('delete-btn').style.display = 'flex';
+    try {
+      const p = await ProductsAPI.get(productId);
+      document.getElementById('breadcrumb-title').textContent = p.name;
+      document.getElementById('f-name').value = p.name;
+      document.getElementById('f-brand').value = p.brand || '';
+      document.getElementById('f-sku').value = p.sku;
+      document.getElementById('f-sku').readOnly = true;
+      document.getElementById('f-category').value = p.category || '';
+      document.getElementById('f-desc').value = p.description || '';
+      document.getElementById('f-price-sell').value = p.price_sell;
+      document.getElementById('f-price-buy').value = p.price_buy || '';
+      document.getElementById('f-stock').value = p.stock;
+      document.getElementById('f-stock-min').value = p.stock_min;
+      document.getElementById('f-image').value = p.image_url || '';
+      if (p.image_url) document.getElementById('img-preview').innerHTML = `<img src="${p.image_url}" style="width:100%;height:100%;object-fit:contain;">`;
+      calcMargin();
+    } catch (err) { showToast('Failed to load product: ' + err.message, 'error'); }
+  }
+}
+
+window.saveProduct = async function(e) {
+  e.preventDefault();
+  const btn = document.getElementById('save-btn');
+  btn.disabled = true; btn.querySelector('.material-symbols-outlined').textContent = 'hourglass_empty';
+  try {
+    const body = {
+      name: document.getElementById('f-name').value,
+      brand: document.getElementById('f-brand').value,
+      sku: document.getElementById('f-sku').value,
+      category: document.getElementById('f-category').value,
+      description: document.getElementById('f-desc').value,
+      price_sell: parseInt(document.getElementById('f-price-sell').value),
+      price_buy: parseInt(document.getElementById('f-price-buy').value) || 0,
+      stock: parseInt(document.getElementById('f-stock').value) || 0,
+      stock_min: parseInt(document.getElementById('f-stock-min').value) || 5,
+      image_url: document.getElementById('f-image').value || null
+    };
+    if (productId) await ProductsAPI.update(productId, body);
+    else await ProductsAPI.create(body);
+    showToast(`Product ${productId ? 'updated' : 'created'} successfully!`, 'success');
+    setTimeout(() => navigate('/inventory'), 1000);
+  } catch (err) {
+    showToast('Error: ' + err.message, 'error');
+    btn.disabled = false; btn.querySelector('.material-symbols-outlined').textContent = 'save';
+  }
+};
+
+window.deleteProduct = function() {
+  showConfirm('This will deactivate the product. Continue?', async () => {
+    try {
+      await ProductsAPI.delete(productId);
+      showToast('Product deactivated', 'info');
+      setTimeout(() => navigate('/inventory'), 800);
+    } catch (err) { showToast('Delete failed: ' + err.message, 'error'); }
+  });
+};
+
+init();
+</script>
