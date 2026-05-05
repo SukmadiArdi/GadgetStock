@@ -62,13 +62,13 @@ app.post('/api/products',
   vercelHandler('./api/products/index'));
 
 app.get('/api/products/:id',
-  vercelHandler('./api/products/[id]', { id: 'id' }));
+  vercelHandler('./api/products/[id]/index', { id: 'id' }));
 
 app.put('/api/products/:id',
-  vercelHandler('./api/products/[id]', { id: 'id' }));
+  vercelHandler('./api/products/[id]/index', { id: 'id' }));
 
 app.delete('/api/products/:id',
-  vercelHandler('./api/products/[id]', { id: 'id' }));
+  vercelHandler('./api/products/[id]/index', { id: 'id' }));
 
 // Inventory
 app.get('/api/inventory/low-stock',
@@ -82,7 +82,7 @@ app.post('/api/transactions',
   vercelHandler('./api/transactions/index'));
 
 app.get('/api/transactions/:id',
-  vercelHandler('./api/transactions/[id]', { id: 'id' }));
+  vercelHandler('./api/transactions/[id]/index', { id: 'id' }));
 
 // Settings
 app.get('/api/settings',
