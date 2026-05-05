@@ -5,10 +5,10 @@
       <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.15em;font-weight:700;color:var(--on-surface-variant);">Business Intelligence</p>
       <h1 style="font-size:1.875rem;font-weight:800;color:#1e3a5f;">Monthly Analytics</h1>
     </div>
-    <div style="display:flex;gap:0.75rem;align-items:center;">
-      <input type="month" id="analytics-month" class="form-input" style="max-width:12rem;" onchange="loadAnalytics()" />
-      <button class="btn btn-secondary btn-sm" onclick="window.print()">
-        <span class="material-symbols-outlined" style="font-size:1rem;">download</span>Export
+    <div style="display:flex;gap:0.75rem;align-items:center;height:2.5rem;">
+      <input type="month" id="analytics-month" class="form-input" style="width:11rem;height:100%;margin:0;" onchange="loadAnalytics()" />
+      <button class="btn btn-primary btn-sm" id="btn-export-analytics" onclick="exportAnalyticsExcel()" style="display:flex;align-items:center;justify-content:center;gap:0.5rem;height:100%;padding:0 1.25rem;font-weight:600;margin:0;">
+        <span class="material-symbols-outlined" style="font-size:1.125rem;">grid_on</span> Export Excel
       </button>
     </div>
   </div>
@@ -57,11 +57,14 @@ import { formatRupiah, currentMonthISO } from '/js/utils.js';
 
 document.getElementById('analytics-month').value = currentMonthISO();
 
+let currentAnalyticsData = null;
+
 async function loadAnalytics() {
   window.loadAnalytics = loadAnalytics;
   const month = document.getElementById('analytics-month').value || currentMonthISO();
   try {
     const data = await ReportsAPI.monthly(month);
+    currentAnalyticsData = data;
     const { totalRevenue, totalOrders, avgOrder, revChangePct } = data.summary;
 
     document.getElementById('a-revenue').textContent = formatRupiah(totalRevenue);
@@ -109,6 +112,52 @@ async function loadAnalytics() {
     document.getElementById('a-top-products').innerHTML = `<p style="color:var(--error);">${err.message}</p>`;
   }
 }
+
+window.exportAnalyticsExcel = async function() {
+  if (!currentAnalyticsData) return alert('No data to export');
+  
+  const btn = document.getElementById('btn-export-analytics');
+  const oldHTML = btn.innerHTML;
+  btn.innerHTML = `<span class="material-symbols-outlined" style="font-size:1rem;">hourglass_empty</span>Loading...`;
+  
+  try {
+    if (!window.XLSX) {
+      await new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+      });
+    }
+
+    const wb = XLSX.utils.book_new();
+
+    // Sheet 1: Daily Breakdown
+    const dailyData = currentAnalyticsData.daily.map(d => ({
+      'Date': `${document.getElementById('analytics-month').value}-${String(d.day).padStart(2,'0')}`,
+      'Revenue (IDR)': d.revenue,
+      'Orders': d.orders
+    }));
+    const wsDaily = XLSX.utils.json_to_sheet(dailyData);
+    XLSX.utils.book_append_sheet(wb, wsDaily, "Daily Revenue");
+
+    // Sheet 2: Top Products
+    const productData = currentAnalyticsData.topProducts.map(p => ({
+      'Product Name': p.name,
+      'Quantity Sold': p.qty,
+      'Revenue Generated (IDR)': p.revenue
+    }));
+    const wsProducts = XLSX.utils.json_to_sheet(productData);
+    XLSX.utils.book_append_sheet(wb, wsProducts, "Top Products");
+
+    XLSX.writeFile(wb, `Analytics_${document.getElementById('analytics-month').value}.xlsx`);
+  } catch (err) {
+    alert('Failed to export Excel');
+  } finally {
+    btn.innerHTML = oldHTML;
+  }
+};
 
 loadAnalytics();
 </script>

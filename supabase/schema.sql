@@ -17,14 +17,14 @@ CREATE TABLE IF NOT EXISTS profiles (
 );
 
 -- Auto-create profile on user signup
-CREATE OR REPLACE FUNCTION handle_new_user()
+CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO profiles (id, full_name, role)
+  INSERT INTO public.profiles (id, full_name, role)
   VALUES (NEW.id, NEW.raw_user_meta_data->>'full_name', COALESCE(NEW.raw_user_meta_data->>'role', 'cashier'));
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
@@ -102,6 +102,20 @@ CREATE TABLE IF NOT EXISTS stock_logs (
   transaction_id UUID         REFERENCES transactions(id),
   created_at     TIMESTAMPTZ  DEFAULT NOW()
 );
+
+-- ─── 6. Settings ───────────────────────────────────────────────
+CREATE TABLE public.settings (
+    key text PRIMARY KEY,
+    value text NOT NULL
+);
+
+-- ─── Insert default settings ─────────────────────────────────────────────────────
+INSERT INTO public.settings (key, value) VALUES
+    ('tax_rate', '0.11'),
+    ('store_name', 'GadgetStock'),
+    ('low_stock_threshold', '10'),
+    ('receipt_footer', 'Terima kasih telah berbelanja!');
+
 
 -- ─── Indexes ─────────────────────────────────────────────────────
 CREATE INDEX IF NOT EXISTS idx_products_category ON products(category);

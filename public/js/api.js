@@ -8,14 +8,27 @@ async function request(path, options = {}) {
       headers: { 'Content-Type': 'application/json', ...options.headers },
       ...options
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    const text = await res.text();
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (err) {
+      if (!res.ok) throw new Error(`HTTP ${res.status}: Server returned non-JSON response.`);
+      throw err;
+    }
+    if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`);
     return data;
   } catch (err) {
     console.error(`API Error [${options.method || 'GET'} ${path}]:`, err);
     throw err;
   }
 }
+
+// ─── Auth ─────────────────────────────────────────────────────────
+export const AuthAPI = {
+  login: (employee_id, password) => request('/auth', { method: 'POST', body: JSON.stringify({ action: 'login', employee_id, password }) }),
+  signup: (employee_id, password, full_name) => request('/auth', { method: 'POST', body: JSON.stringify({ action: 'signup', employee_id, password, full_name }) })
+};
 
 // ─── Dashboard ────────────────────────────────────────────────────
 export const DashboardAPI = {

@@ -26,7 +26,7 @@
             <span>Subtotal</span><span id="co-subtotal" class="text-rupiah">—</span>
           </div>
           <div style="display:flex;justify-content:space-between;font-size:0.875rem;color:var(--on-surface-variant);">
-            <span>Tax (8.5%)</span><span id="co-tax" class="text-rupiah">—</span>
+            <span id="co-tax-label">Tax</span><span id="co-tax" class="text-rupiah">—</span>
           </div>
           <div style="border-top:1px solid var(--outline-variant);padding-top:0.875rem;display:flex;justify-content:space-between;align-items:center;">
             <span style="font-size:1rem;font-weight:700;color:#1e3a5f;">Grand Total</span>
@@ -64,7 +64,7 @@
       <div id="cash-form" class="card" style="padding:1.25rem;margin-bottom:1.5rem;">
         <div class="form-group" style="margin-bottom:1rem;">
           <label class="form-label">Cash Received</label>
-          <input type="number" id="cash-input" class="form-input" placeholder="Enter amount..." min="0" oninput="calcChange()" />
+          <input type="text" id="cash-input" class="form-input" placeholder="Enter amount..." oninput="formatCurrencyInput(this); calcChange()" />
         </div>
         <div style="background:var(--surface-container-low);border-radius:0.5rem;padding:0.875rem;display:flex;justify-content:space-between;align-items:center;">
           <span style="font-size:0.8125rem;font-weight:600;color:var(--on-surface-variant);">Change</span>
@@ -103,13 +103,21 @@ import { formatRupiah, showToast } from '/js/utils.js';
 let selectedMethod = 'cash';
 let totals = { subtotal: 0, tax: 0, total: 0 };
 
-function init() {
-  if (!State.cart.length) { navigate('/pos'); return; }
+function updateTotals() {
   totals = State.getCartTotals();
-
+  const taxRatePct = (State.settings.taxRate * 100).toFixed(1).replace(/\.0$/, '');
+  document.getElementById('co-tax-label').textContent = `Tax (${taxRatePct}%)`;
   document.getElementById('co-subtotal').textContent = formatRupiah(totals.subtotal);
   document.getElementById('co-tax').textContent = formatRupiah(totals.tax);
   document.getElementById('co-total').textContent = formatRupiah(totals.total);
+}
+
+function init() {
+  if (!State.cart.length) { navigate('/pos'); return; }
+  updateTotals();
+
+  // Re-render if settings load from server after page init
+  State.on('settings', () => updateTotals());
 
   const summary = document.getElementById('order-summary');
   summary.innerHTML = State.cart.map(item => `
@@ -137,8 +145,15 @@ window.selectMethod = function(el) {
   }
 };
 
+window.formatCurrencyInput = function(el) {
+  let val = el.value.replace(/[^0-9]/g, '');
+  if (val) el.value = parseInt(val, 10).toLocaleString('id-ID');
+  else el.value = '';
+};
+
 window.calcChange = function() {
-  const cash = parseInt(document.getElementById('cash-input').value) || 0;
+  const cashStr = document.getElementById('cash-input').value.replace(/\./g, '');
+  const cash = parseInt(cashStr) || 0;
   const change = Math.max(0, cash - totals.total);
   document.getElementById('change-amount').textContent = formatRupiah(change);
 };
@@ -149,7 +164,8 @@ window.confirmPayment = async function() {
   errEl.style.display = 'none';
 
   if (selectedMethod === 'cash') {
-    const cash = parseInt(document.getElementById('cash-input').value) || 0;
+    const cashStr = document.getElementById('cash-input').value.replace(/\./g, '');
+    const cash = parseInt(cashStr) || 0;
     if (cash < totals.total) { errEl.textContent = 'Cash received is less than total amount'; errEl.style.display = 'block'; return; }
   }
 
@@ -161,7 +177,7 @@ window.confirmPayment = async function() {
       items: State.cart.map(i => ({ product_id: i.product_id, product_name: i.name, product_sku: i.sku, quantity: i.qty, unit_price: i.price })),
       customer_name: State.currentUser.customerName || 'Walk-in Customer',
       payment_method: selectedMethod,
-      cash_received: selectedMethod === 'cash' ? (parseInt(document.getElementById('cash-input').value)||0) : null,
+      cash_received: selectedMethod === 'cash' ? (parseInt(document.getElementById('cash-input').value.replace(/\./g, ''))||0) : null,
       terminal: State.settings.terminal
     });
 

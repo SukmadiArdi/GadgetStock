@@ -26,11 +26,15 @@ function vercelHandler(handlerPath, paramMap = {}) {
   const handler = require(handlerPath);
   return async (req, res, next) => {
     try {
-      // Inject route params ke req.query (mirip Vercel dynamic routes)
-      if (paramMap) {
+      // req.query di Express adalah object hasil parse qs yang tidak bisa di-assign langsung.
+      // Buat merged query object baru dan proxy req agar handler membaca nilai yang benar.
+      if (paramMap && Object.keys(paramMap).length > 0) {
+        const extraParams = {};
         Object.entries(paramMap).forEach(([expressParam, vercelParam]) => {
-          req.query[vercelParam] = req.params[expressParam];
+          extraParams[vercelParam] = req.params[expressParam];
         });
+        // Override req.query dengan object baru yang sudah include route params
+        req.query = Object.assign({}, req.query, extraParams);
       }
       await handler(req, res);
     } catch (err) {
@@ -40,6 +44,11 @@ function vercelHandler(handlerPath, paramMap = {}) {
 }
 
 // ─── API Routes ────────────────────────────────────────────────
+
+// Auth
+app.post('/api/auth',
+  vercelHandler('./api/auth/index'));
+
 
 // Dashboard
 app.get('/api/dashboard/summary',
@@ -74,6 +83,13 @@ app.post('/api/transactions',
 
 app.get('/api/transactions/:id',
   vercelHandler('./api/transactions/[id]', { id: 'id' }));
+
+// Settings
+app.get('/api/settings',
+  vercelHandler('./api/settings/index'));
+
+app.post('/api/settings',
+  vercelHandler('./api/settings/index'));
 
 // Reports
 app.get('/api/reports/daily',

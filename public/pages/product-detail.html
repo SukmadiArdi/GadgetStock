@@ -67,21 +67,21 @@
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
         <div class="form-group">
           <label class="form-label">Selling Price (Rp) *</label>
-          <input type="number" id="f-price-sell" class="form-input" placeholder="18899000" min="0" required />
+          <input type="text" id="f-price-sell" class="form-input" placeholder="18.899.000" required oninput="formatCurrencyInput(this)" />
         </div>
         <div class="form-group">
           <label class="form-label">Purchase Price (Rp)</label>
-          <input type="number" id="f-price-buy" class="form-input" placeholder="15000000" min="0" />
+          <input type="text" id="f-price-buy" class="form-input" placeholder="15.000.000" oninput="formatCurrencyInput(this)" />
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
         <div class="form-group">
           <label class="form-label">Current Stock</label>
-          <input type="number" id="f-stock" class="form-input" placeholder="0" min="0" />
+          <input type="text" id="f-stock" class="form-input" placeholder="0" inputmode="numeric" pattern="[0-9]*" oninput="this.value=this.value.replace(/[^0-9]/g,'')" />
         </div>
         <div class="form-group">
           <label class="form-label">Min Stock (Alert)</label>
-          <input type="number" id="f-stock-min" class="form-input" placeholder="5" min="0" />
+          <input type="text" id="f-stock-min" class="form-input" placeholder="5" inputmode="numeric" pattern="[0-9]*" oninput="this.value=this.value.replace(/[^0-9]/g,'')" />
         </div>
       </div>
 
@@ -108,9 +108,17 @@ import { formatRupiah, getHashParams, showToast, showConfirm } from '/js/utils.j
 
 let productId = null;
 
+window.formatCurrencyInput = function(el) {
+  let val = el.value.replace(/[^0-9]/g, '');
+  if (val) el.value = parseInt(val, 10).toLocaleString('id-ID');
+  else el.value = '';
+};
+
 function calcMargin() {
-  const sell = parseInt(document.getElementById('f-price-sell').value) || 0;
-  const buy  = parseInt(document.getElementById('f-price-buy').value) || 0;
+  const sellStr = document.getElementById('f-price-sell').value.replace(/\./g, '');
+  const buyStr  = document.getElementById('f-price-buy').value.replace(/\./g, '');
+  const sell = parseInt(sellStr) || 0;
+  const buy  = parseInt(buyStr) || 0;
   const el   = document.getElementById('margin-text');
   if (sell && buy) {
     const pct = (((sell - buy) / buy) * 100).toFixed(1);
@@ -144,8 +152,8 @@ async function init() {
       document.getElementById('f-sku').readOnly = true;
       document.getElementById('f-category').value = p.category || '';
       document.getElementById('f-desc').value = p.description || '';
-      document.getElementById('f-price-sell').value = p.price_sell;
-      document.getElementById('f-price-buy').value = p.price_buy || '';
+      document.getElementById('f-price-sell').value = parseInt(p.price_sell).toLocaleString('id-ID');
+      document.getElementById('f-price-buy').value = p.price_buy ? parseInt(p.price_buy).toLocaleString('id-ID') : '';
       document.getElementById('f-stock').value = p.stock;
       document.getElementById('f-stock-min').value = p.stock_min;
       document.getElementById('f-image').value = p.image_url || '';
@@ -166,8 +174,8 @@ window.saveProduct = async function(e) {
       sku: document.getElementById('f-sku').value,
       category: document.getElementById('f-category').value,
       description: document.getElementById('f-desc').value,
-      price_sell: parseInt(document.getElementById('f-price-sell').value),
-      price_buy: parseInt(document.getElementById('f-price-buy').value) || 0,
+      price_sell: parseInt(document.getElementById('f-price-sell').value.replace(/\./g, '')),
+      price_buy: parseInt(document.getElementById('f-price-buy').value.replace(/\./g, '')) || 0,
       stock: parseInt(document.getElementById('f-stock').value) || 0,
       stock_min: parseInt(document.getElementById('f-stock-min').value) || 5,
       image_url: document.getElementById('f-image').value || null

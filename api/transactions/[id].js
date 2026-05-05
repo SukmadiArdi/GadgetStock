@@ -11,8 +11,11 @@ module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  const { id } = req.query;
+  // Vercel: id ada di req.query (file-based routing [id].js)
+  // Express lokal: id ada di req.params (route :id)
+  const id = req.query.id || req.params?.id;
   if (!id) return res.status(400).json({ error: 'Transaction ID required' });
+
 
   try {
     if (req.method === 'GET') {

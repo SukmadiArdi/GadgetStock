@@ -17,6 +17,13 @@
 
   <!-- Global Styles -->
   <link rel="stylesheet" href="/css/main.css" />
+  <style>
+    body.is-auth-page #sidebar { display: none !important; }
+    body.is-auth-page #topbar { display: none !important; }
+    body.is-auth-page #bottom-nav { display: none !important; }
+    body.is-auth-page #main-content { margin-left: 0 !important; padding: 0 !important; width: 100vw; height: 100vh; background: var(--surface-container-low); display: flex; }
+    body.is-auth-page #page-content { max-width: 100%; margin: 0; display: flex; width: 100%; height: 100%; align-items: center; justify-content: center; }
+  </style>
 </head>
 <body>
 
@@ -78,11 +85,6 @@
         <button class="topbar-icon-btn" id="mobile-menu-btn" style="display:none;" onclick="document.getElementById('sidebar').classList.toggle('open')">
           <span class="material-symbols-outlined">menu</span>
         </button>
-
-        <div class="topbar-search">
-          <span class="material-symbols-outlined" style="font-size:1.125rem;color:#94a3b8;">search</span>
-          <input type="text" id="global-search" placeholder="Search products, orders, SKU..." />
-        </div>
       </div>
 
       <div class="topbar-actions">
@@ -90,7 +92,7 @@
           <span class="material-symbols-outlined">notifications</span>
           <span class="notif-dot" id="notif-dot" style="display:none;"></span>
         </button>
-        <button class="topbar-icon-btn" title="Settings">
+        <button class="topbar-icon-btn" title="Settings" onclick="navigate('/settings')">
           <span class="material-symbols-outlined">settings</span>
         </button>
         <div class="topbar-divider"></div>
@@ -101,6 +103,9 @@
           </div>
           <div class="topbar-avatar" id="user-avatar">AM</div>
         </div>
+        <button class="topbar-icon-btn" onclick="State.logout()" style="color:var(--error);margin-left:0.5rem;" title="Logout">
+          <span class="material-symbols-outlined">logout</span>
+        </button>
       </div>
     </header>
 
@@ -150,8 +155,9 @@
   import { initRouter, navigate } from '/js/router.js';
   import State from '/js/state.js';
 
-  // Make navigate global for onclick attributes
+  // Make navigate and State global for onclick attributes
   window.navigate = navigate;
+  window.State = State;
 
   // Mobile responsive: show menu button, hide sidebar on small screens
   function handleResize() {
@@ -175,17 +181,16 @@
     }
   });
 
-  // Global search → navigate to relevant page
-  document.getElementById('global-search')?.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      const val = e.target.value.trim();
-      if (val) navigate(`/inventory?search=${encodeURIComponent(val)}`);
-    }
-  });
 
   // Sync user info in topbar from State
   function syncUserUI() {
     const u = State.currentUser;
+    if (!u) {
+      document.body.classList.add('is-auth-page');
+      if (window.location.hash !== '#/login') navigate('/login');
+      return;
+    }
+    document.body.classList.remove('is-auth-page');
     const nameEl = document.getElementById('user-name');
     const roleEl = document.getElementById('user-role');
     const avatarEl = document.getElementById('user-avatar');
@@ -193,7 +198,7 @@
     if (nameEl) nameEl.textContent = u.name;
     if (roleEl) roleEl.textContent = u.role === 'manager' ? 'Store Manager' : 'Cashier';
     if (avatarEl) avatarEl.textContent = u.initials;
-    if (terminalEl) terminalEl.textContent = u.terminal;
+    if (terminalEl) terminalEl.textContent = u.terminal || 'Terminal 01';
   }
   State.on('user', syncUserUI);
   syncUserUI();

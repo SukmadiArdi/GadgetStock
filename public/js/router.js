@@ -1,7 +1,10 @@
 // public/js/router.js - Hash-based SPA client-side router
 
+import State from './state.js';
+
 const routes = {
   '/'               : '/pages/dashboard.html',
+  '/login'          : '/pages/auth.html',
   '/dashboard'      : '/pages/dashboard.html',
   '/pos'            : '/pages/pos.html',
   '/checkout'       : '/pages/checkout.html',
@@ -11,7 +14,8 @@ const routes = {
   '/low-stock'      : '/pages/low-stock.html',
   '/sales-report'   : '/pages/sales-report.html',
   '/transactions'   : '/pages/transactions.html',
-  '/analytics'      : '/pages/analytics.html'
+  '/analytics'      : '/pages/analytics.html',
+  '/settings'       : '/pages/settings.html'
 };
 
 const navMap = {
@@ -22,7 +26,8 @@ const navMap = {
   '/low-stock'      : 'Inventory',
   '/transactions'   : 'Transactions',
   '/sales-report'   : 'Reports',
-  '/analytics'      : 'Analytics'
+  '/analytics'      : 'Analytics',
+  '/settings'       : 'Settings'
 };
 
 let currentPath = null;
@@ -36,18 +41,31 @@ function getRoute() {
   const hash = window.location.hash || '#/';
   const full = hash.slice(1); // remove '#'
   const path = full.split('?')[0] || '/';
-  return path;
+  return { path, full };
 }
 
 async function render() {
-  const path = getRoute();
-  if (path === currentPath) return;
-  currentPath = path;
+  const { path, full } = getRoute();
+
+  // Auth protection
+  if (!State.currentUser && path !== '/login') {
+    navigate('/login');
+    return;
+  }
+  if (State.currentUser && path === '/login') {
+    navigate('/dashboard');
+    return;
+  }
+
+  // Use full hash (path + query) so edit?id=X vs new are treated as different
+  if (full === currentPath) return;
+  currentPath = full;
 
   // Run cleanup of previous page
   if (typeof currentCleanup === 'function') { currentCleanup(); currentCleanup = null; }
 
   const filePath = routes[path] || routes['/'];
+
   const container = document.getElementById('page-content');
 
   // Loading skeleton

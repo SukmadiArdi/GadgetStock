@@ -1,0 +1,108 @@
+<!-- pages/auth.html -->
+<div class="fade-in" style="display:flex;align-items:center;justify-content:center;height:calc(100vh - 4rem);margin:-2rem;">
+  <div style="width:100%;max-width:24rem;background:#fff;border-radius:1rem;box-shadow:0 1rem 3rem rgba(0,0,0,0.1);padding:2rem;">
+    
+    <div style="text-align:center;margin-bottom:2rem;">
+      <div style="width:4rem;height:4rem;background:var(--primary-container);color:#fff;border-radius:1rem;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
+        <span class="material-symbols-outlined" style="font-size:2rem;">lock_person</span>
+      </div>
+      <h1 id="auth-title" style="font-size:1.5rem;font-weight:800;color:#1e3a5f;">Staff Login</h1>
+      <p id="auth-subtitle" style="font-size:0.875rem;color:var(--on-surface-variant);margin-top:0.5rem;">Enter your Employee ID to continue</p>
+    </div>
+
+    <form id="auth-form" onsubmit="handleAuth(event)" style="display:flex;flex-direction:column;gap:1.25rem;">
+      <div id="name-group" class="form-group" style="display:none;">
+        <label class="form-label">Full Name</label>
+        <input type="text" id="f-fullname" class="form-input" placeholder="Enter Your Full Name" />
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Employee ID</label>
+        <input type="text" id="f-empid" class="form-input" placeholder="Enter Your Employee ID" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <div style="position:relative;display:flex;align-items:center;">
+          <input type="password" id="f-password" class="form-input" placeholder="Enter Your Password" required style="padding-right:2.5rem;width:100%;" />
+          <button type="button" onclick="togglePassword()" style="position:absolute;right:0.5rem;background:none;border:none;color:var(--on-surface-variant);cursor:pointer;display:flex;align-items:center;padding:0.25rem;">
+            <span class="material-symbols-outlined" id="pw-icon" style="font-size:1.25rem;">visibility</span>
+          </button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary" id="auth-btn" style="width:100%;margin-top:0.5rem;justify-content:center;">
+        <span class="material-symbols-outlined">login</span><span id="auth-btn-text">Sign In</span>
+      </button>
+    </form>
+
+    <div style="text-align:center;margin-top:1.5rem;">
+      <button class="btn btn-ghost btn-sm" id="toggle-auth-btn" onclick="toggleMode()" style="color:var(--primary);">
+        Need an account? Register here
+      </button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { AuthAPI } from '/js/api.js';
+import State from '/js/state.js';
+import { showToast } from '/js/utils.js';
+
+let isLogin = true;
+
+window.togglePassword = function() {
+  const pwInput = document.getElementById('f-password');
+  const pwIcon = document.getElementById('pw-icon');
+  if (pwInput.type === 'password') {
+    pwInput.type = 'text';
+    pwIcon.textContent = 'visibility_off';
+  } else {
+    pwInput.type = 'password';
+    pwIcon.textContent = 'visibility';
+  }
+};
+
+window.toggleMode = function() {
+  isLogin = !isLogin;
+  document.getElementById('auth-title').textContent = isLogin ? 'Staff Login' : 'Staff Registration';
+  document.getElementById('auth-subtitle').textContent = isLogin ? 'Enter your Employee ID to continue' : 'Register your new Employee ID';
+  document.getElementById('auth-btn-text').textContent = isLogin ? 'Sign In' : 'Register';
+  document.getElementById('auth-btn').querySelector('.material-symbols-outlined').textContent = isLogin ? 'login' : 'person_add';
+  document.getElementById('toggle-auth-btn').textContent = isLogin ? 'Need an account? Register here' : 'Already have an account? Sign In';
+  document.getElementById('name-group').style.display = isLogin ? 'none' : 'block';
+  if (!isLogin) document.getElementById('f-fullname').setAttribute('required', 'true');
+  else document.getElementById('f-fullname').removeAttribute('required');
+};
+
+window.handleAuth = async function(e) {
+  e.preventDefault();
+  const btn = document.getElementById('auth-btn');
+  btn.disabled = true;
+  btn.querySelector('.material-symbols-outlined').textContent = 'hourglass_empty';
+
+  try {
+    const empId = document.getElementById('f-empid').value.trim();
+    const password = document.getElementById('f-password').value;
+    
+    if (isLogin) {
+      const res = await AuthAPI.login(empId, password);
+      State.setUser(res.user, res.profile);
+      showToast('Login successful!', 'success');
+      setTimeout(() => navigate('/dashboard'), 500);
+    } else {
+      const name = document.getElementById('f-fullname').value.trim();
+      const res = await AuthAPI.signup(empId, password, name);
+      showToast(res.message, 'success');
+      toggleMode(); // switch back to login
+      document.getElementById('f-empid').value = empId;
+      document.getElementById('f-password').value = '';
+    }
+  } catch (err) {
+    showToast('Error: ' + err.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.querySelector('.material-symbols-outlined').textContent = isLogin ? 'login' : 'person_add';
+  }
+};
+</script>

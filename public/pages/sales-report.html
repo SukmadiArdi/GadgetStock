@@ -5,10 +5,10 @@
       <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.15em;font-weight:700;color:var(--on-surface-variant);">Reports</p>
       <h1 style="font-size:1.875rem;font-weight:800;color:#1e3a5f;">Daily Sales Report</h1>
     </div>
-    <div style="display:flex;gap:0.75rem;align-items:center;">
-      <input type="date" id="report-date" class="form-input" style="max-width:12rem;" onchange="loadReport()" />
-      <button class="btn btn-secondary btn-sm" onclick="window.print()">
-        <span class="material-symbols-outlined" style="font-size:1rem;">print</span>Export
+    <div style="display:flex;gap:0.75rem;align-items:center;height:2.5rem;">
+      <input type="date" id="report-date" class="form-input" style="width:11rem;height:100%;margin:0;" onchange="loadReport()" />
+      <button class="btn btn-primary btn-sm" id="btn-export-sales" onclick="exportExcel()" style="display:flex;align-items:center;justify-content:center;gap:0.5rem;height:100%;padding:0 1.25rem;font-weight:600;margin:0;">
+        <span class="material-symbols-outlined" style="font-size:1.125rem;">grid_on</span> Export Excel
       </button>
     </div>
   </div>
@@ -66,11 +66,14 @@ import { formatRupiah, formatDate, todayISO } from '/js/utils.js';
 
 document.getElementById('report-date').value = todayISO();
 
+let currentReportData = null;
+
 async function loadReport() {
   window.loadReport = loadReport;
   const date = document.getElementById('report-date').value || todayISO();
   try {
     const data = await ReportsAPI.daily(date);
+    currentReportData = data;
     const { totalRevenue, totalOrders, avgOrderValue, totalItemsSold } = data.summary;
 
     document.getElementById('r-revenue').textContent = formatRupiah(totalRevenue);
@@ -131,6 +134,43 @@ async function loadReport() {
     document.getElementById('report-txn-tbody').innerHTML = `<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--error);">${err.message}</td></tr>`;
   }
 }
+
+window.exportExcel = async function() {
+  if (!currentReportData || !currentReportData.transactions.length) return alert('No data to export');
+  
+  const btn = document.getElementById('btn-export-sales');
+  const oldHTML = btn.innerHTML;
+  btn.innerHTML = `<span class="material-symbols-outlined" style="font-size:1rem;">hourglass_empty</span>Loading...`;
+  
+  try {
+    if (!window.XLSX) {
+      await new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+      });
+    }
+
+    const data = currentReportData.transactions.map(t => ({
+      'TXN Number': t.txn_number,
+      'Time': new Date(t.created_at).toLocaleTimeString('id-ID'),
+      'Customer Name': t.customer_name || 'Walk-in',
+      'Total Amount (IDR)': t.total,
+      'Payment Method': (t.payment_method || '').toUpperCase()
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Sales");
+    XLSX.writeFile(wb, `Sales_Report_${document.getElementById('report-date').value}.xlsx`);
+  } catch (err) {
+    alert('Failed to export Excel');
+  } finally {
+    btn.innerHTML = oldHTML;
+  }
+};
 
 loadReport();
 </script>

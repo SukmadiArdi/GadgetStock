@@ -4,25 +4,29 @@ const State = {
   // Current active cart items
   cart: [],
 
-  // Currently logged-in user (from Supabase Auth)
-  currentUser: {
-    id: null,
-    name: 'Alex Manager',
-    role: 'manager',
+  // Currently logged-in user
+  currentUser: (() => {
+    try {
+      const stored = localStorage.getItem('gs_user');
+      if (stored === 'undefined') return null;
+      return stored ? JSON.parse(stored) : null;
+    } catch(e) {
+      console.warn('Failed to parse gs_user from localStorage', e);
+      return null;
+    }
+  })(),
+
+  // Global App Settings
+  settings: JSON.parse(localStorage.getItem('gs_settings')) || {
     terminal: 'Terminal 01',
-    initials: 'AM'
+    storeName: 'GadgetStock',
+    receiptFooter: 'Terima kasih telah berbelanja!',
+    taxRate: 0.11, // 11%
+    lowStockThreshold: 10
   },
 
   // Last completed transaction (for receipt page)
   currentTxn: null,
-
-  // App settings
-  settings: {
-    taxRate: 0.085,
-    storeName: 'GadgetStock',
-    terminal: 'Terminal 01',
-    lowStockThreshold: 10
-  },
 
   // Listeners for state changes
   _listeners: {},
@@ -84,16 +88,74 @@ const State = {
     this._emit('txn');
   },
 
+  // ─── Settings Methods ──────────────────────────────────────
+  
+  async updateSettings(newSettings) {
+    this.settings = { ...this.settings, ...newSettings };
+    localStorage.setItem('gs_settings', JSON.stringify(this.settings));
+    this._emit('settings');
+    // Also emit user to update terminal UI in topbar
+    this._emit('user'); 
+
+    // Sync with backend
+    try {
+      const payload = {};
+      if (newSettings.storeName !== undefined) payload.store_name = newSettings.storeName;
+      if (newSettings.taxRate !== undefined) payload.tax_rate = newSettings.taxRate;
+      if (newSettings.receiptFooter !== undefined) payload.receipt_footer = newSettings.receiptFooter;
+      if (newSettings.lowStockThreshold !== undefined) payload.low_stock_threshold = newSettings.lowStockThreshold;
+      
+      if (Object.keys(payload).length > 0) {
+        await fetch('/api/settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      }
+    } catch (err) {
+      console.error('Failed to sync settings with server', err);
+    }
+  },
+
+  async fetchSettings() {
+    try {
+      const res = await fetch('/api/settings');
+      if (res.ok) {
+        const data = await res.json();
+        const updated = {
+          ...this.settings,
+          storeName: data.store_name || this.settings.storeName,
+          taxRate: parseFloat(data.tax_rate) || this.settings.taxRate,
+          receiptFooter: data.receipt_footer || this.settings.receiptFooter,
+          lowStockThreshold: parseInt(data.low_stock_threshold) || this.settings.lowStockThreshold
+        };
+        this.settings = updated;
+        localStorage.setItem('gs_settings', JSON.stringify(this.settings));
+        this._emit('settings');
+      }
+    } catch (err) {
+      console.error('Failed to fetch settings', err);
+    }
+  },
+
   // ─── User Methods ──────────────────────────────────────────
 
-  setUser(user) {
+  setUser(user, profile) {
     this.currentUser = {
       id: user.id,
-      name: user.user_metadata?.full_name || user.email,
-      role: user.user_metadata?.role || 'cashier',
-      terminal: user.user_metadata?.terminal || 'Terminal 01',
-      initials: (user.user_metadata?.full_name || 'U').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
+      name: profile?.full_name || user.user_metadata?.full_name || user.email,
+      role: profile?.role || user.user_metadata?.role || 'cashier',
+      employee_id: profile?.employee_id || user.user_metadata?.employee_id,
+      initials: (profile?.full_name || user.user_metadata?.full_name || 'U').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
     };
+    // No need to set terminal here since it comes from settings now
+    localStorage.setItem('gs_user', JSON.stringify(this.currentUser));
+    this._emit('user');
+  },
+
+  logout() {
+    this.currentUser = null;
+    localStorage.removeItem('gs_user');
     this._emit('user');
   },
 
@@ -114,5 +176,8 @@ const State = {
     (this._listeners[event] || []).forEach(cb => cb(this));
   }
 };
+
+// Fetch initial settings from server
+State.fetchSettings();
 
 export default State;

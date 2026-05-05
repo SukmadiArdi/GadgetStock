@@ -105,12 +105,14 @@
 <script type="module">
 import { DashboardAPI } from '/js/api.js';
 import { formatRupiah, formatRelativeTime, getStockStatus } from '/js/utils.js';
+import State from '/js/state.js';
 
 async function load() {
   // Greeting
   const hour = new Date().getHours();
   const greet = hour < 12 ? 'Good Morning' : hour < 17 ? 'Good Afternoon' : 'Good Evening';
-  document.getElementById('dash-greeting').textContent = `${greet}, Alex 👋`;
+  const userName = State.currentUser?.name?.split(' ')[0] || 'User';
+  document.getElementById('dash-greeting').textContent = `${greet}, ${userName} 👋`;
   document.getElementById('dash-date').textContent = new Date().toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
 
   try {

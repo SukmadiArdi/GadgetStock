@@ -6,6 +6,10 @@
       <h1 style="font-size:2rem;font-weight:800;letter-spacing:-0.02em;color:#1e3a5f;">Inventory Management</h1>
     </div>
     <div style="display:flex;gap:0.75rem;">
+      <div style="background:#fff;border:1px solid rgba(196,198,207,0.5);border-radius:0.5rem;padding:0.375rem 0.75rem;display:flex;align-items:center;gap:0.5rem;width:200px;">
+        <span class="material-symbols-outlined" style="font-size:1.125rem;color:#94a3b8;">search</span>
+        <input type="text" id="search-filter" placeholder="Search..." style="border:none;outline:none;background:transparent;width:100%;font-size:0.875rem;" oninput="debouncedSearchInv()" />
+      </div>
       <select id="cat-filter" class="form-input form-select" style="width:auto;" onchange="loadInventory()">
         <option value="">All Categories</option>
         <option value="Smartphones">Smartphones</option>
@@ -90,10 +94,15 @@
 
 <script type="module">
 import { ProductsAPI, DashboardAPI } from '/js/api.js';
-import { formatRupiah, getStockStatus } from '/js/utils.js';
+import { formatRupiah, getStockStatus, debounce, getHashParams } from '/js/utils.js';
 
 let currentPage = 1;
 const limit = 15;
+
+window.debouncedSearchInv = debounce(() => {
+  currentPage = 1;
+  loadInventory();
+}, 300);
 
 async function loadInventory() {
   window.loadInventory = loadInventory;
@@ -103,7 +112,11 @@ async function loadInventory() {
   try {
     const cat    = document.getElementById('cat-filter')?.value;
     const status = document.getElementById('status-filter')?.value;
-    const { products, pagination } = await ProductsAPI.list({ page: currentPage, limit, category: cat, status });
+    const search = document.getElementById('search-filter')?.value;
+    
+    const params = { page: currentPage, limit, category: cat, status };
+    if (search) params.search = search;
+    const { products, pagination } = await ProductsAPI.list(params);
 
     if (!products.length) {
       tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:3rem;color:var(--outline);">No products found</td></tr>`;
@@ -153,6 +166,13 @@ DashboardAPI.getSummary().then(data => {
   document.getElementById('inv-low').textContent   = data.inventory.low_stock_count + ' Items';
   document.getElementById('inv-oos').textContent   = data.inventory.out_of_stock_count + ' Items';
 }).catch(() => {});
+
+// Initialize search from URL params if present
+const params = getHashParams();
+if (params.search) {
+  const searchInput = document.getElementById('search-filter');
+  if (searchInput) searchInput.value = decodeURIComponent(params.search);
+}
 
 loadInventory();
 </script>

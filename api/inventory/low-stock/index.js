@@ -13,7 +13,9 @@ module.exports = async (req, res) => {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    const threshold = parseInt(process.env.LOW_STOCK_THRESHOLD || 10);
+    // Fetch setting from database
+    const { data: settingData } = await supabase.from('settings').select('value').eq('key', 'low_stock_threshold').single();
+    const threshold = parseInt(settingData?.value || process.env.LOW_STOCK_THRESHOLD || 10);
 
     const { data: outOfStock } = await supabase
       .from('products').select('*').eq('is_active', true).eq('stock', 0).order('name');

@@ -28,6 +28,24 @@
   </div>
 </div>
 
+<!-- Restock Modal -->
+<div id="restock-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:1000;display:none;align-items:center;justify-content:center;">
+  <div class="card" style="padding:2rem;width:22rem;max-width:90vw;box-shadow:0 20px 60px rgba(0,0,0,0.25);">
+    <h2 style="font-size:1.125rem;font-weight:800;color:#1e3a5f;margin-bottom:0.25rem;">Restock Product</h2>
+    <p id="restock-product-name" style="font-size:0.8125rem;color:var(--on-surface-variant);margin-bottom:1.5rem;"></p>
+    <div class="form-group" style="margin-bottom:1.5rem;">
+      <label class="form-label">Quantity to Add</label>
+      <input type="text" id="restock-qty-input" class="form-input" placeholder="e.g. 10" inputmode="numeric" pattern="[0-9]*" oninput="this.value=this.value.replace(/[^0-9]/g,'')" style="font-size:1.25rem;font-weight:700;" />
+    </div>
+    <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
+      <button class="btn btn-ghost" onclick="closeRestockModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmRestock()">
+        <span class="material-symbols-outlined">add_box</span>Restock
+      </button>
+    </div>
+  </div>
+</div>
+
 <script type="module">
 import { InventoryAPI } from '/js/api.js';
 import { formatRupiah, showToast } from '/js/utils.js';
@@ -87,13 +105,34 @@ async function load() {
   }
 }
 
+let _restockId = null;
+
 window.restock = function(id, name) {
-  const qty = prompt(`Enter restock quantity for:\n${name}`);
-  if (!qty || isNaN(qty) || parseInt(qty) <= 0) return;
-  InventoryAPI.restock(id, parseInt(qty))
-    .then(() => { showToast(`Restocked ${qty} units!`, 'success'); load(); })
+  _restockId = id;
+  document.getElementById('restock-product-name').textContent = name;
+  document.getElementById('restock-qty-input').value = '';
+  const modal = document.getElementById('restock-modal');
+  modal.style.display = 'flex';
+  setTimeout(() => document.getElementById('restock-qty-input').focus(), 100);
+};
+
+window.closeRestockModal = function() {
+  document.getElementById('restock-modal').style.display = 'none';
+  _restockId = null;
+};
+
+window.confirmRestock = function() {
+  const qty = parseInt(document.getElementById('restock-qty-input').value);
+  if (!qty || qty <= 0) return showToast('Please enter a valid quantity', 'error');
+  InventoryAPI.restock(_restockId, qty)
+    .then(() => { showToast(`Restocked ${qty} units!`, 'success'); closeRestockModal(); load(); })
     .catch(err => showToast('Restock failed: ' + err.message, 'error'));
 };
+
+// Allow pressing Enter to confirm
+document.getElementById('restock-qty-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') confirmRestock();
+});
 
 load();
 </script>

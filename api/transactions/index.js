@@ -56,8 +56,13 @@ module.exports = async (req, res) => {
       if (!items || !items.length) return res.status(400).json({ error: 'items are required' });
       if (!payment_method) return res.status(400).json({ error: 'payment_method is required' });
 
+      // Fetch settings from database
+      const { data: settingsData } = await supabase.from('settings').select('*');
+      const settingsMap = {};
+      if (settingsData) settingsData.forEach(s => settingsMap[s.key] = s.value);
+
       // Calculate totals
-      const taxRate = parseFloat(process.env.TAX_RATE || 0.085);
+      const taxRate = parseFloat(settingsMap['tax_rate'] || process.env.TAX_RATE || 0.085);
       const subtotal   = items.reduce((s, i) => s + (i.unit_price * i.quantity), 0);
       const tax_amount = Math.round(subtotal * taxRate);
       const total      = subtotal + tax_amount;
