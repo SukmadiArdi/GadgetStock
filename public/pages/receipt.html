@@ -14,7 +14,7 @@
   <div class="card" style="overflow:hidden;margin-bottom:1.5rem;" id="receipt-card">
     <!-- Store Header -->
     <div style="background:var(--primary-container);padding:1.5rem;text-align:center;">
-      <h2 style="font-size:1.125rem;font-weight:800;color:#fff;">GadgetStock</h2>
+      <h2 style="font-size:1.125rem;font-weight:800;color:#fff;" id="receipt-store-name">GadgetStock</h2>
       <p style="font-size:0.75rem;color:var(--on-primary-container);" id="receipt-terminal">Terminal 01</p>
       <p style="font-size:0.75rem;color:var(--on-primary-container);margin-top:0.25rem;" id="receipt-datetime"></p>
     </div>
@@ -38,6 +38,10 @@
         <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;color:var(--on-surface-variant);">Change</p>
         <p style="font-size:0.875rem;font-weight:700;color:#1e3a5f;" id="receipt-change" class="text-rupiah">—</p>
       </div>
+    </div>
+    <!-- Receipt Footer -->
+    <div style="padding:1rem 1.5rem;text-align:center;border-top:1px dashed var(--outline-variant);">
+      <p style="font-size:0.75rem;color:var(--on-surface-variant);font-style:italic;" id="receipt-footer-text">Terima kasih telah berbelanja!</p>
     </div>
   </div>
 
@@ -92,13 +96,24 @@ function init() {
     </div>
   `).join('');
 
+  // Calculate the actual tax % from the transaction data
+  const taxRatePct = txn.subtotal > 0
+    ? ((txn.tax_amount / txn.subtotal) * 100).toFixed(1).replace(/\.0$/, '')
+    : (State.settings.taxRate * 100).toFixed(1).replace(/\.0$/, '');
+
+  // Store name and footer from settings
+  const storeName = State.settings.storeName || 'GadgetStock';
+  const footer = State.settings.receiptFooter || 'Terima kasih telah berbelanja!';
+  document.getElementById('receipt-store-name').textContent = storeName;
+  document.getElementById('receipt-footer-text').textContent = footer;
+
   document.getElementById('receipt-totals').innerHTML = `
     <div style="display:flex;flex-direction:column;gap:0.5rem;">
       <div style="display:flex;justify-content:space-between;font-size:0.8125rem;color:var(--on-surface-variant);">
         <span>Subtotal</span><span class="text-rupiah">${formatRupiah(txn.subtotal)}</span>
       </div>
       <div style="display:flex;justify-content:space-between;font-size:0.8125rem;color:var(--on-surface-variant);">
-        <span>Tax (8.5%)</span><span class="text-rupiah">${formatRupiah(txn.tax_amount)}</span>
+        <span>Tax (${taxRatePct}%)</span><span class="text-rupiah">${formatRupiah(txn.tax_amount)}</span>
       </div>
       <div style="display:flex;justify-content:space-between;font-size:1rem;font-weight:800;color:#1e3a5f;padding-top:0.5rem;border-top:1px solid var(--outline-variant);">
         <span>TOTAL</span><span class="text-rupiah">${formatRupiah(txn.total)}</span>
@@ -108,5 +123,9 @@ function init() {
 }
 
 window.State = State;
+
+// Re-render receipt when settings arrive from server (store name / footer may update)
+State.on('settings', init);
+
 init();
 </script>
