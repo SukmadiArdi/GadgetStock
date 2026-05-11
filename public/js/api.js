@@ -27,7 +27,8 @@ async function request(path, options = {}) {
 // ─── Auth ─────────────────────────────────────────────────────────
 export const AuthAPI = {
   login: (employee_id, password) => request('/auth', { method: 'POST', body: JSON.stringify({ action: 'login', employee_id, password }) }),
-  signup: (employee_id, password, full_name) => request('/auth', { method: 'POST', body: JSON.stringify({ action: 'signup', employee_id, password, full_name }) })
+  signup: (employee_id, password, full_name) => request('/auth', { method: 'POST', body: JSON.stringify({ action: 'signup', employee_id, password, full_name }) }),
+  changePassword: (user_id, new_password) => request('/auth', { method: 'POST', body: JSON.stringify({ action: 'change_password', user_id, new_password }) })
 };
 
 // ─── Dashboard ────────────────────────────────────────────────────

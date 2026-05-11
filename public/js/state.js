@@ -22,7 +22,8 @@ const State = {
     storeName: 'GadgetStock',
     receiptFooter: 'Terima kasih telah berbelanja!',
     taxRate: 0.11, // 11%
-    lowStockThreshold: 10
+    lowStockThreshold: 10,
+    enabledPaymentMethods: ['cash', 'debit', 'qris', 'credit']
   },
 
   // Last completed transaction (for receipt page)
@@ -104,6 +105,7 @@ const State = {
       if (newSettings.taxRate !== undefined) payload.tax_rate = newSettings.taxRate;
       if (newSettings.receiptFooter !== undefined) payload.receipt_footer = newSettings.receiptFooter;
       if (newSettings.lowStockThreshold !== undefined) payload.low_stock_threshold = newSettings.lowStockThreshold;
+      if (newSettings.enabledPaymentMethods !== undefined) payload.enabled_payment_methods = JSON.stringify(newSettings.enabledPaymentMethods);
       
       if (Object.keys(payload).length > 0) {
         await fetch('/api/settings', {
@@ -127,7 +129,8 @@ const State = {
           storeName: data.store_name || this.settings.storeName,
           taxRate: parseFloat(data.tax_rate) || this.settings.taxRate,
           receiptFooter: data.receipt_footer || this.settings.receiptFooter,
-          lowStockThreshold: parseInt(data.low_stock_threshold) || this.settings.lowStockThreshold
+          lowStockThreshold: parseInt(data.low_stock_threshold) || this.settings.lowStockThreshold,
+          enabledPaymentMethods: data.enabled_payment_methods ? JSON.parse(data.enabled_payment_methods) : this.settings.enabledPaymentMethods
         };
         this.settings = updated;
         localStorage.setItem('gs_settings', JSON.stringify(this.settings));

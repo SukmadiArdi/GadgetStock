@@ -40,24 +40,8 @@
     <div>
       <h2 style="font-size:0.875rem;font-weight:700;color:var(--on-surface-variant);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:1rem;">Payment Method</h2>
 
-      <!-- Payment Options -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:1.5rem;">
-        <div class="pay-option selected" data-method="cash" onclick="selectMethod(this)">
-          <span class="material-symbols-outlined">payments</span>
-          <span>Cash</span>
-        </div>
-        <div class="pay-option" data-method="qris" onclick="selectMethod(this)">
-          <span class="material-symbols-outlined">qr_code_scanner</span>
-          <span>QRIS</span>
-        </div>
-        <div class="pay-option" data-method="debit" onclick="selectMethod(this)">
-          <span class="material-symbols-outlined">credit_card</span>
-          <span>Debit Card</span>
-        </div>
-        <div class="pay-option" data-method="credit" onclick="selectMethod(this)">
-          <span class="material-symbols-outlined">credit_score</span>
-          <span>Credit Card</span>
-        </div>
+      <!-- Payment Options (Rendered dynamically) -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:1.5rem;" id="payment-options-container">
       </div>
 
       <!-- Cash Form -->
@@ -129,11 +113,45 @@ function init() {
       <span style="font-weight:700;font-size:0.875rem;" class="text-rupiah">${formatRupiah(item.price * item.qty)}</span>
     </div>
   `).join('');
+
+  renderPaymentMethods();
 }
 
-window.selectMethod = function(el) {
-  document.querySelectorAll('.pay-option').forEach(o => o.classList.remove('selected'));
-  el.classList.add('selected');
+function renderPaymentMethods() {
+  const container = document.getElementById('payment-options-container');
+  const enabledMethods = State.settings.enabledPaymentMethods || ['cash', 'debit', 'qris', 'credit'];
+  
+  const methods = [
+    { id: 'cash', label: 'Cash', icon: 'payments' },
+    { id: 'qris', label: 'QRIS', icon: 'qr_code_scanner' },
+    { id: 'debit', label: 'Debit Card', icon: 'credit_card' },
+    { id: 'credit', label: 'Credit Card', icon: 'credit_score' }
+  ];
+
+  const filtered = methods.filter(m => enabledMethods.includes(m.id));
+  
+  // Reset selected method if current one is disabled
+  if (!enabledMethods.includes(selectedMethod)) {
+    selectedMethod = enabledMethods[0];
+  }
+
+  container.innerHTML = filtered.map(m => `
+    <div class="pay-option ${m.id === selectedMethod ? 'selected' : ''}" data-method="${m.id}" onclick="selectMethod(this)">
+      <span class="material-symbols-outlined">${m.icon}</span>
+      <span>${m.label}</span>
+    </div>
+  `).join('');
+
+  // Update form visibility
+  const dummyEl = { dataset: { method: selectedMethod }, classList: { add: () => {}, remove: () => {} } };
+  selectMethod(dummyEl, true); 
+}
+
+window.selectMethod = function(el, isInitial = false) {
+  if (!isInitial) {
+    document.querySelectorAll('.pay-option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+  }
   selectedMethod = el.dataset.method;
   const cashForm = document.getElementById('cash-form');
   const ncForm = document.getElementById('noncash-form');

@@ -14,8 +14,25 @@ module.exports = async (req, res) => {
 
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { action, employee_id, password, full_name } = req.body;
+  const { action, employee_id, password, full_name, user_id, new_password } = req.body;
 
+  // Handle change_password separately — does not need employee_id/password
+  if (action === 'change_password') {
+    if (!user_id) return res.status(400).json({ error: 'User ID is required' });
+    if (!new_password || new_password.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    }
+    try {
+      const { error } = await supabase.auth.admin.updateUserById(user_id, { password: new_password });
+      if (error) throw error;
+      return res.status(200).json({ success: true, message: 'Password updated successfully' });
+    } catch (err) {
+      console.error('Change password error:', err);
+      return res.status(400).json({ error: err.message });
+    }
+  }
+
+  // For login/signup: employee_id and password are required
   if (!employee_id || !password) {
     return res.status(400).json({ error: 'Employee ID and password are required' });
   }

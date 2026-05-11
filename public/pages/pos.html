@@ -11,9 +11,14 @@
           <h1 style="font-size:1.5rem;font-weight:800;letter-spacing:-0.02em;color:#1e3a5f;">Inventory Selection</h1>
           <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--on-surface-variant);">Select products to add to cart</p>
         </div>
-        <div style="background:#fff;border:1px solid rgba(196,198,207,0.5);border-radius:9999px;padding:0.5rem 1rem;display:flex;align-items:center;gap:0.5rem;width:250px;">
-          <span class="material-symbols-outlined" style="font-size:1.125rem;color:#94a3b8;">search</span>
-          <input type="text" id="pos-search" placeholder="Search products..." style="border:none;outline:none;background:transparent;width:100%;font-size:0.875rem;" oninput="debouncedSearchPos()" />
+        <div style="display:flex;align-items:center;gap:0.5rem;width:300px;">
+          <div style="background:#fff;border:1px solid rgba(196,198,207,0.5);border-radius:9999px;padding:0.5rem 1rem;display:flex;align-items:center;gap:0.5rem;flex:1;">
+            <span class="material-symbols-outlined" style="font-size:1.125rem;color:#94a3b8;">search</span>
+            <input type="text" id="pos-search" placeholder="Search products..." style="border:none;outline:none;background:transparent;width:100%;font-size:0.875rem;" oninput="debouncedSearchPos()" />
+          </div>
+          <button class="topbar-icon-btn" onclick="openScanner()" title="Scan Barcode" style="background:var(--primary-container);color:#fff;width:2.5rem;height:2.5rem;">
+            <span class="material-symbols-outlined">barcode_scanner</span>
+          </button>
         </div>
       </div>
       <div style="display:flex;gap:0.5rem;overflow-x:auto;padding-bottom:0.25rem;" id="category-filters" class="custom-scroll">
@@ -88,7 +93,6 @@
           Checkout<span class="material-symbols-outlined" style="font-size:1rem;">arrow_forward_ios</span>
         </button>
       </div>
-    </div>
   </section>
 </div>
 
@@ -253,6 +257,63 @@ window.goCheckout = () => {
 
 State.on('cart', renderCart);
 State.on('settings', renderCart);
+
+// ─── Scanner Implementation ───────────────────────────────────────
+let html5QrCode = null;
+
+window.openScanner = async function() {
+  const modal = document.getElementById('scanner-modal');
+  modal.style.display = 'flex';
+  document.getElementById('close-scanner-btn').onclick = closeScanner;
+  
+  if (!html5QrCode) {
+    html5QrCode = new Html5Qrcode("reader");
+  }
+
+  const config = { fps: 10, qrbox: { width: 250, height: 150 } };
+  
+  try {
+    await html5QrCode.start(
+      { facingMode: "environment" }, 
+      config,
+      async (decodedText) => {
+        const sku = decodedText.trim();
+        if (navigator.vibrate) navigator.vibrate(100);
+        
+        console.log(`Code scanned: ${sku}`);
+        
+        try {
+          const { products } = await ProductsAPI.list({ search: sku, limit: 1 });
+          if (products && products.length > 0) {
+            const product = products.find(p => p.sku.toLowerCase() === sku.toLowerCase()) || products[0];
+            
+            if (product.stock <= 0) {
+              showToast(`${product.name} is out of stock!`, 'error');
+            } else {
+              State.addToCart(product);
+              showToast(`${product.name} added to cart`, 'success', 1000);
+            }
+          } else {
+            showToast(`Product with SKU "${sku}" not found`, 'error');
+          }
+        } catch (err) {
+          showToast('Search failed: ' + err.message, 'error');
+        }
+      }
+    );
+  } catch (err) {
+    showToast('Camera error: ' + err.message, 'error');
+    closeScanner();
+  }
+};
+
+window.closeScanner = async function() {
+  if (html5QrCode && html5QrCode.isScanning) {
+    await html5QrCode.stop();
+  }
+  document.getElementById('scanner-modal').style.display = 'none';
+};
+
 renderCart();
 loadProducts();
 </script>

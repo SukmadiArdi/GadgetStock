@@ -12,11 +12,11 @@
       <h3 id="count-oos" style="font-size:2.5rem;font-weight:800;color:var(--error);">—</h3>
     </div>
     <div class="card" style="padding:1.5rem;border-left:4px solid var(--error);">
-      <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;color:var(--on-surface-variant);">Critical (≤5)</p>
+      <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;color:var(--on-surface-variant);" id="label-critical">Critical</p>
       <h3 id="count-critical" style="font-size:2.5rem;font-weight:800;color:var(--error);">—</h3>
     </div>
     <div class="card" style="padding:1.5rem;border-left:4px solid #b45309;">
-      <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;color:var(--on-surface-variant);">Low Stock (≤10)</p>
+      <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;color:var(--on-surface-variant);" id="label-low">Low Stock</p>
       <h3 id="count-low" style="font-size:2.5rem;font-weight:800;color:#b45309;">—</h3>
     </div>
   </div>
@@ -48,6 +48,7 @@
 
 <script type="module">
 import { InventoryAPI } from '/js/api.js';
+import State from '/js/state.js';
 import { formatRupiah, showToast } from '/js/utils.js';
 
 function renderGroup(title, items, badgeClass, badgeLabel, borderColor) {
@@ -89,15 +90,22 @@ function renderGroup(title, items, badgeClass, badgeLabel, borderColor) {
 async function load() {
   try {
     const data = await InventoryAPI.getLowStock();
-    document.getElementById('count-oos').textContent     = data.out_of_stock.length;
+    const threshold = data.threshold || State.settings.lowStockThreshold || 10;
+    const criticalThreshold = Math.floor(threshold / 2);
+
+    // Update card labels dynamically
+    document.getElementById('label-critical').textContent = `Critical (≤${criticalThreshold})`;
+    document.getElementById('label-low').textContent      = `Low Stock (≤${threshold})`;
+
+    document.getElementById('count-oos').textContent      = data.out_of_stock.length;
     document.getElementById('count-critical').textContent = data.critical.length;
-    document.getElementById('count-low').textContent     = data.low_stock.length;
+    document.getElementById('count-low').textContent      = data.low_stock.length;
 
     const lists = document.getElementById('alert-lists');
     const html = [
       renderGroup('Out of Stock', data.out_of_stock, 'badge-critical', 'Out of Stock', 'var(--error)'),
-      renderGroup('Critical Stock', data.critical, 'badge-danger', 'Critical', 'var(--error)'),
-      renderGroup('Low Stock', data.low_stock, 'badge-warning', 'Low Stock', '#b45309')
+      renderGroup(`Critical Stock (≤${criticalThreshold})`, data.critical, 'badge-danger', 'Critical', 'var(--error)'),
+      renderGroup(`Low Stock (≤${threshold})`, data.low_stock, 'badge-warning', 'Low Stock', '#b45309')
     ].join('');
     lists.innerHTML = html || `<div class="card" style="padding:3rem;text-align:center;color:var(--outline);">✅ All products have healthy stock levels!</div>`;
   } catch (err) {

@@ -14,6 +14,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+  
+  <!-- Barcode Scanner Library -->
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 
   <!-- Global Styles -->
   <link rel="stylesheet" href="/css/main.css" />
@@ -88,9 +91,10 @@
       </div>
 
       <div class="topbar-actions">
-        <button class="topbar-icon-btn" id="notif-btn" title="Notifications" onclick="navigate('/low-stock')">
+        <button class="topbar-icon-btn" id="notif-btn" title="Notifications" onclick="navigate('/low-stock')" style="position:relative;">
           <span class="material-symbols-outlined">notifications</span>
           <span class="notif-dot" id="notif-dot" style="display:none;"></span>
+          <span id="notif-count" style="display:none;position:absolute;top:-0.125rem;right:-0.125rem;background:var(--error);color:#fff;font-size:0.5rem;font-weight:700;border-radius:9999px;min-width:1rem;height:1rem;line-height:1rem;text-align:center;padding:0 0.25rem;"></span>
         </button>
         <button class="topbar-icon-btn" title="Settings" onclick="navigate('/settings')">
           <span class="material-symbols-outlined">settings</span>
@@ -150,6 +154,22 @@
 <!-- Toast notifications container -->
 <div id="toast-container"></div>
 
+<!-- Global Scanner Modal -->
+<div id="scanner-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:2000;align-items:center;justify-content:center;padding:1.5rem;backdrop-filter:blur(10px);">
+  <div class="card" style="width:100%;max-width:500px;overflow:hidden;position:relative;background:#000;">
+    <div id="reader" style="width:100%;"></div>
+    <div style="padding:1.5rem;background:var(--surface-container-highest);display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <h3 style="font-size:1rem;font-weight:700;color:#1e3a5f;">Scanner Active</h3>
+        <p style="font-size:0.75rem;color:var(--on-surface-variant);">Point camera at a barcode</p>
+      </div>
+      <button class="btn btn-secondary btn-sm" id="close-scanner-btn">
+        <span class="material-symbols-outlined" style="font-size:1.125rem;">close</span>Close
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- ═══ App Bootstrap ════════════════════════════════════════════ -->
 <script type="module">
   import { initRouter, navigate } from '/js/router.js';
@@ -198,9 +218,10 @@
     if (nameEl) nameEl.textContent = u.name;
     if (roleEl) roleEl.textContent = u.role === 'manager' ? 'Store Manager' : 'Cashier';
     if (avatarEl) avatarEl.textContent = u.initials;
-    if (terminalEl) terminalEl.textContent = u.terminal || 'Terminal 01';
+    if (terminalEl) terminalEl.textContent = State.settings?.terminal || 'Terminal 01';
   }
   State.on('user', syncUserUI);
+  State.on('settings', syncUserUI);
   syncUserUI();
 
   // Check for low stock notifications
@@ -208,11 +229,21 @@
     try {
       const data = await fetch('/api/inventory/low-stock').then(r => r.ok ? r.json() : null);
       if (data && data.total > 0) {
-        document.getElementById('notif-dot').style.display = 'block';
+        document.getElementById('notif-dot').style.display = 'none';
+        const badge = document.getElementById('notif-count');
+        badge.textContent = data.total > 99 ? '99+' : data.total;
+        badge.style.display = 'block';
+        document.getElementById('notif-btn').title = `${data.total} item stok rendah/habis`;
+      } else {
+        document.getElementById('notif-dot').style.display = 'none';
+        document.getElementById('notif-count').style.display = 'none';
+        document.getElementById('notif-btn').title = 'Notifications';
       }
     } catch (_) { /* silent fail */ }
   }
   checkLowStock();
+  // Refresh setiap 5 menit
+  setInterval(checkLowStock, 5 * 60 * 1000);
 
   // Boot the router
   initRouter();

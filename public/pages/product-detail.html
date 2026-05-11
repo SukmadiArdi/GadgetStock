@@ -30,7 +30,12 @@
         </div>
         <div class="form-group">
           <label class="form-label">SKU *</label>
-          <input type="text" id="f-sku" class="form-input" placeholder="APL-IP15-P-256" required />
+          <div style="display:flex;gap:0.5rem;">
+            <input type="text" id="f-sku" class="form-input" placeholder="APL-IP15-P-256" required style="flex:1;" />
+            <button type="button" class="btn btn-secondary btn-sm" onclick="openScanner()" title="Scan Barcode" style="padding:0.5rem;width:2.5rem;height:2.5rem;">
+              <span class="material-symbols-outlined">barcode_scanner</span>
+            </button>
+          </div>
         </div>
       </div>
       <div class="form-group">
@@ -198,6 +203,46 @@ window.deleteProduct = function() {
       setTimeout(() => navigate('/inventory'), 800);
     } catch (err) { showToast('Delete failed: ' + err.message, 'error'); }
   });
+};
+
+// ─── Scanner Implementation ───────────────────────────────────────
+let html5QrCode = null;
+
+window.openScanner = async function() {
+  const modal = document.getElementById('scanner-modal');
+  modal.style.display = 'flex';
+  document.getElementById('close-scanner-btn').onclick = closeScanner;
+  
+  if (!html5QrCode) {
+    html5QrCode = new Html5Qrcode("reader");
+  }
+
+  const config = { fps: 10, qrbox: { width: 250, height: 150 } };
+  
+  try {
+    await html5QrCode.start(
+      { facingMode: "environment" }, 
+      config,
+      (decodedText) => {
+        const sku = decodedText.trim();
+        if (navigator.vibrate) navigator.vibrate(100);
+        
+        document.getElementById('f-sku').value = sku;
+        showToast(`SKU Scanned: ${sku}`, 'success');
+        closeScanner();
+      }
+    );
+  } catch (err) {
+    showToast('Camera error: ' + err.message, 'error');
+    closeScanner();
+  }
+};
+
+window.closeScanner = async function() {
+  if (html5QrCode && html5QrCode.isScanning) {
+    await html5QrCode.stop();
+  }
+  document.getElementById('scanner-modal').style.display = 'none';
 };
 
 init();
