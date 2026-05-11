@@ -1,8 +1,8 @@
 <!-- pages/pos.html - POS Cashier Interface -->
-<div style="display:flex;height:calc(100vh - 3.5rem);margin:-2rem;overflow:hidden;" class="fade-in">
+<div class="fade-in page-layout-pos">
 
   <!-- LEFT: Product Grid -->
-  <section style="flex:1.5;display:flex;flex-direction:column;overflow:hidden;padding:1.5rem;gap:1rem;">
+  <section class="pos-left">
 
     <!-- Header + Filters -->
     <div style="display:flex;flex-direction:column;gap:1rem;flex-shrink:0;">
@@ -11,7 +11,7 @@
           <h1 style="font-size:1.5rem;font-weight:800;letter-spacing:-0.02em;color:#1e3a5f;">Inventory Selection</h1>
           <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--on-surface-variant);">Select products to add to cart</p>
         </div>
-        <div style="display:flex;align-items:center;gap:0.5rem;width:300px;">
+        <div id="pos-search-container" style="display:flex;align-items:center;gap:0.5rem;width:300px;">
           <div style="background:#fff;border:1px solid rgba(196,198,207,0.5);border-radius:9999px;padding:0.5rem 1rem;display:flex;align-items:center;gap:0.5rem;flex:1;">
             <span class="material-symbols-outlined" style="font-size:1.125rem;color:#94a3b8;">search</span>
             <input type="text" id="pos-search" placeholder="Search products..." style="border:none;outline:none;background:transparent;width:100%;font-size:0.875rem;" oninput="debouncedSearchPos()" />
@@ -47,7 +47,7 @@
   <div style="width:1px;background:rgba(196,198,207,0.15);"></div>
 
   <!-- RIGHT: Cart Panel -->
-  <section style="width:22rem;display:flex;flex-direction:column;background:var(--surface-container-high);">
+  <section class="pos-right">
 
     <!-- Cart Header -->
     <div style="padding:1.5rem;border-bottom:1px solid rgba(196,198,207,0.1);background:rgba(255,255,255,0.5);backdrop-filter:blur(12px);">

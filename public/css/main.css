@@ -520,6 +520,19 @@ body {
 .page-btn.active { background: var(--primary-container); color: var(--on-primary); font-weight: 700; }
 .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
+/* ─── Responsive Layout Utilities ────────────────────────────── */
+.page-layout { display: grid; gap: 1.5rem; }
+.page-layout-2col { grid-template-columns: 1fr 1fr; }
+.page-layout-sidebar-right { grid-template-columns: 1fr 22rem; }
+.page-layout-pos { display: flex; flex-direction: row; height: calc(100vh - 3.5rem); margin: -2rem; overflow: hidden; }
+.pos-left { flex: 1.5; display: flex; flex-direction: column; overflow: hidden; padding: 1.5rem; gap: 1rem; }
+.pos-right { width: 22rem; display: flex; flex-direction: column; background: var(--surface-container-high); flex-shrink: 0; }
+
+.grid-cols-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.grid-cols-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+.grid-cols-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+.col-span-2-desktop { grid-column: span 2; }
+
 /* ─── Responsive ───────────────────────────────────────────── */
 @media (max-width: 767px) {
   #sidebar { transform: translateX(-100%); }
@@ -527,6 +540,20 @@ body {
   #main-content { margin-left: 0; }
   #bottom-nav { display: flex; }
   #page-content { padding: 1rem; padding-bottom: 5rem; }
+  
+  /* Responsive Overrides */
+  .page-layout-2col { grid-template-columns: 1fr; }
+  .page-layout-sidebar-right { grid-template-columns: 1fr; }
+  .grid-cols-2 { grid-template-columns: 1fr; }
+  .grid-cols-3 { grid-template-columns: 1fr; }
+  .grid-cols-4 { grid-template-columns: 1fr; }
+  .col-span-2-desktop { grid-column: span 1; }
+  
+  /* POS Layout Mobile */
+  .page-layout-pos { flex-direction: column; height: calc(100vh - 8rem); margin: -1rem; overflow-y: auto; }
+  .pos-left { flex: none; overflow: visible; padding: 1rem; }
+  .pos-right { width: 100%; height: auto; flex: none; }
+  #pos-search-container { width: 100% !important; }
 }
 
 /* ─── Utility Classes ──────────────────────────────────────── */

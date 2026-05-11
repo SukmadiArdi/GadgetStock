@@ -8,9 +8,9 @@
   </div>
 
   <!-- Hero KPI Bento Grid -->
-  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;" id="kpi-grid">
+  <div class="grid-cols-4" style="margin-bottom:2rem;" id="kpi-grid">
     <!-- Revenue Card (2 cols) -->
-    <div class="card-hero" style="grid-column:span 2;padding:2rem;min-height:13rem;display:flex;flex-direction:column;justify-content:space-between;">
+    <div class="card-hero col-span-2-desktop" style="padding:2rem;min-height:13rem;display:flex;flex-direction:column;justify-content:space-between;">
       <div>
         <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.15em;color:var(--on-primary-container);margin-bottom:0.5rem;">Total Revenue (Today)</p>
         <h2 id="kpi-revenue" style="font-size:2.75rem;font-weight:800;letter-spacing:-0.03em;color:#fff;" class="text-rupiah">—</h2>
@@ -54,10 +54,10 @@
   </div>
 
   <!-- Detail Grid -->
-  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:2rem;">
+  <div class="page-layout-sidebar-right">
 
-    <!-- Critical Stock Alerts (2 cols) -->
-    <div style="grid-column:span 2;">
+    <!-- Critical Stock Alerts -->
+    <div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
         <h2 style="font-size:1rem;font-weight:700;color:#1e3a5f;">Critical Stock Alerts</h2>
         <button class="btn btn-ghost btn-sm" onclick="navigate('/low-stock')" style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;">

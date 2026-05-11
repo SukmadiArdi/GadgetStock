@@ -15,7 +15,7 @@
     </button>
   </div>
 
-  <form id="product-form" style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;" onsubmit="saveProduct(event)">
+  <form id="product-form" class="page-layout-2col" onsubmit="saveProduct(event)">
 
     <!-- Left Column -->
     <div style="display:flex;flex-direction:column;gap:1.25rem;">
@@ -23,7 +23,7 @@
         <label class="form-label">Product Name *</label>
         <input type="text" id="f-name" class="form-input" placeholder="e.g. iPhone 15 Pro Max" required />
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+      <div class="grid-cols-2">
         <div class="form-group">
           <label class="form-label">Brand</label>
           <input type="text" id="f-brand" class="form-input" placeholder="Apple" />
@@ -69,7 +69,7 @@
         <span class="material-symbols-outlined" style="font-size:4rem;color:var(--outline);">image</span>
       </div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+      <div class="grid-cols-2">
         <div class="form-group">
           <label class="form-label">Selling Price (Rp) *</label>
           <input type="text" id="f-price-sell" class="form-input" placeholder="18.899.000" required oninput="formatCurrencyInput(this)" />
@@ -79,7 +79,7 @@
           <input type="text" id="f-price-buy" class="form-input" placeholder="15.000.000" oninput="formatCurrencyInput(this)" />
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+      <div class="grid-cols-2">
         <div class="form-group">
           <label class="form-label">Current Stock</label>
           <input type="text" id="f-stock" class="form-input" placeholder="0" inputmode="numeric" pattern="[0-9]*" oninput="this.value=this.value.replace(/[^0-9]/g,'')" />
