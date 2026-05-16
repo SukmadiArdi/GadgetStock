@@ -3,7 +3,7 @@
 
   <!-- Breadcrumb -->
   <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:2rem;font-size:0.75rem;color:var(--on-surface-variant);">
-    <span onclick="navigate('/inventory')" style="cursor:pointer;hover:underline;">Inventory</span>
+    <span onclick="navigate('/inventory')" class="breadcrumb-link" style="cursor:pointer;">Inventory</span>
     <span class="material-symbols-outlined" style="font-size:0.875rem;">chevron_right</span>
     <span id="breadcrumb-title" style="font-weight:600;color:var(--on-surface);">New Product</span>
   </div>
@@ -15,7 +15,7 @@
     </button>
   </div>
 
-  <form id="product-form" class="page-layout-2col" onsubmit="saveProduct(event)">
+  <form id="product-form" style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;" onsubmit="saveProduct(event)">
 
     <!-- Left Column -->
     <div style="display:flex;flex-direction:column;gap:1.25rem;">
@@ -23,7 +23,7 @@
         <label class="form-label">Product Name *</label>
         <input type="text" id="f-name" class="form-input" placeholder="e.g. iPhone 15 Pro Max" required />
       </div>
-      <div class="grid-cols-2">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
         <div class="form-group">
           <label class="form-label">Brand</label>
           <input type="text" id="f-brand" class="form-input" placeholder="Apple" />
@@ -69,7 +69,7 @@
         <span class="material-symbols-outlined" style="font-size:4rem;color:var(--outline);">image</span>
       </div>
 
-      <div class="grid-cols-2">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
         <div class="form-group">
           <label class="form-label">Selling Price (Rp) *</label>
           <input type="text" id="f-price-sell" class="form-input" placeholder="18.899.000" required oninput="formatCurrencyInput(this)" />
@@ -79,7 +79,7 @@
           <input type="text" id="f-price-buy" class="form-input" placeholder="15.000.000" oninput="formatCurrencyInput(this)" />
         </div>
       </div>
-      <div class="grid-cols-2">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
         <div class="form-group">
           <label class="form-label">Current Stock</label>
           <input type="text" id="f-stock" class="form-input" placeholder="0" inputmode="numeric" pattern="[0-9]*" oninput="this.value=this.value.replace(/[^0-9]/g,'')" />
@@ -106,6 +106,10 @@
     </div>
   </form>
 </div>
+
+<style>
+  .breadcrumb-link:hover { text-decoration: underline; }
+</style>
 
 <script type="module">
 import { ProductsAPI } from '/js/api.js';

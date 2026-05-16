@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
   <meta name="description" content="GadgetStock — Modern Retail POS System for gadget stores" />
   <title>GadgetStock POS</title>
 
@@ -83,7 +83,7 @@
 
     <!-- Top Bar -->
     <header id="topbar">
-      <div style="display:flex;align-items:center;gap:1rem;flex:1;">
+      <div style="display:flex;align-items:center;gap:0.75rem;flex:1;">
         <!-- Mobile menu toggle -->
         <button class="topbar-icon-btn" id="mobile-menu-btn" style="display:none;" onclick="document.getElementById('sidebar').classList.toggle('open')">
           <span class="material-symbols-outlined">menu</span>
@@ -96,7 +96,7 @@
           <span class="notif-dot" id="notif-dot" style="display:none;"></span>
           <span id="notif-count" style="display:none;position:absolute;top:-0.125rem;right:-0.125rem;background:var(--error);color:#fff;font-size:0.5rem;font-weight:700;border-radius:9999px;min-width:1rem;height:1rem;line-height:1rem;text-align:center;padding:0 0.25rem;"></span>
         </button>
-        <button class="topbar-icon-btn" title="Settings" onclick="navigate('/settings')">
+        <button class="topbar-icon-btn topbar-settings-btn" title="Settings" onclick="navigate('/settings')">
           <span class="material-symbols-outlined">settings</span>
         </button>
         <div class="topbar-divider"></div>
@@ -107,7 +107,7 @@
           </div>
           <div class="topbar-avatar" id="user-avatar">AM</div>
         </div>
-        <button class="topbar-icon-btn" onclick="State.logout()" style="color:var(--error);margin-left:0.5rem;" title="Logout">
+        <button class="topbar-icon-btn topbar-logout-btn" onclick="State.logout()" style="color:var(--error);margin-left:0.5rem;" title="Logout">
           <span class="material-symbols-outlined">logout</span>
         </button>
       </div>
@@ -173,17 +173,21 @@
 <!-- ═══ App Bootstrap ════════════════════════════════════════════ -->
 <script type="module">
   import { initRouter, navigate } from '/js/router.js';
+  import { showToast } from '/js/utils.js';
   import State from '/js/state.js';
 
   // Make navigate and State global for onclick attributes
   window.navigate = navigate;
   window.State = State;
+  window.showToast = showToast;
 
   // Mobile responsive: show menu button, hide sidebar on small screens
   function handleResize() {
     const mobileMenuBtn = document.getElementById('mobile-menu-btn');
     const isMobile = window.innerWidth < 768;
+    
     if (mobileMenuBtn) mobileMenuBtn.style.display = isMobile ? 'flex' : 'none';
+    
     // Close sidebar overlay if resizing back to desktop
     if (!isMobile) document.getElementById('sidebar')?.classList.remove('open');
   }
@@ -244,6 +248,28 @@
   checkLowStock();
   // Refresh setiap 5 menit
   setInterval(checkLowStock, 5 * 60 * 1000);
+
+  // ─── Scroll Persistence ─────────────────────────────────────────
+  window.addEventListener('page:loaded', (e) => {
+    const path = e.detail.path;
+    const savedScroll = sessionStorage.getItem(`gs_scroll_${path}`);
+    if (savedScroll) {
+      // Small delay to ensure content has rendered
+      setTimeout(() => {
+        const container = document.getElementById('page-content');
+        if (container) container.scrollTop = parseInt(savedScroll);
+      }, 150);
+    }
+  });
+
+  // Save scroll position periodically
+  const pageContainer = document.getElementById('page-content');
+  if (pageContainer) {
+    pageContainer.addEventListener('scroll', () => {
+      const path = window.location.hash.split('?')[0].slice(1) || '/';
+      sessionStorage.setItem(`gs_scroll_${path}`, pageContainer.scrollTop);
+    }, { passive: true });
+  }
 
   // Boot the router
   initRouter();

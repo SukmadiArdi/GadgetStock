@@ -6,7 +6,7 @@
     <p style="font-size:0.8125rem;color:var(--on-surface-variant);margin-top:0.25rem;">Manage your profile and application preferences</p>
   </div>
 
-  <div class="page-layout-2col">
+  <div id="settings-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;">
     
     <!-- Left Column -->
     <div style="display:flex;flex-direction:column;gap:2rem;">
@@ -34,7 +34,7 @@
           </div>
           <div class="form-group">
             <label class="form-label">Full Name</label>
-            <input type="text" id="set-name" class="form-input" />
+            <input type="text" id="set-name" class="form-input" autocomplete="off" />
           </div>
           <button class="btn btn-primary btn-sm" onclick="updateProfile()" style="align-self:flex-start;">Update Profile</button>
         </div>
@@ -56,7 +56,7 @@
           <div class="form-group">
             <label class="form-label">New Password</label>
             <div style="position:relative;">
-              <input type="password" id="set-pass1" class="form-input" placeholder="Min. 6 characters" style="padding-right:2.75rem;" />
+              <input type="password" id="set-pass1" class="form-input" placeholder="Min. 6 characters" style="padding-right:2.75rem;" autocomplete="new-password" />
               <button type="button" onclick="togglePass('set-pass1','eye-pass1')" tabindex="-1"
                 style="position:absolute;right:0.625rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--on-surface-variant);display:flex;align-items:center;padding:0.25rem;">
                 <span class="material-symbols-outlined" id="eye-pass1" style="font-size:1.125rem;">visibility</span>
@@ -66,7 +66,7 @@
           <div class="form-group">
             <label class="form-label">Confirm New Password</label>
             <div style="position:relative;">
-              <input type="password" id="set-pass2" class="form-input" placeholder="Repeat new password" style="padding-right:2.75rem;" />
+              <input type="password" id="set-pass2" class="form-input" placeholder="Repeat new password" style="padding-right:2.75rem;" autocomplete="new-password" />
               <button type="button" onclick="togglePass('set-pass2','eye-pass2')" tabindex="-1"
                 style="position:absolute;right:0.625rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--on-surface-variant);display:flex;align-items:center;padding:0.25rem;">
                 <span class="material-symbols-outlined" id="eye-pass2" style="font-size:1.125rem;">visibility</span>
@@ -102,8 +102,26 @@
               <option value="Terminal 02">Terminal 02 (Secondary)</option>
               <option value="Back Office">Back Office</option>
             </select>
-            <p style="font-size:0.6875rem;color:var(--on-surface-variant);margin-top:0.25rem;">Transactions will be recorded under this terminal.</p>
           </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+            <div class="form-group">
+              <label class="form-label">Product Card Layout</label>
+              <select id="set-pos-size" class="form-input form-select" onchange="saveAppPrefs()">
+                <option value="140">Small (Grid Focus)</option>
+                <option value="180">Medium (Balanced)</option>
+                <option value="240">Large (Image Focus)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Items Per Page</label>
+              <div style="display:flex;align-items:center;background:var(--surface-container-low);border-radius:0.5rem;overflow:hidden;height:2.5rem;border:1px solid rgba(196,198,207,0.5);">
+                <button onclick="adjustPosLimit(-5)" style="border:none;background:none;padding:0 0.75rem;cursor:pointer;color:var(--on-surface);"><span class="material-symbols-outlined" style="font-size:1.125rem;">remove</span></button>
+                <input type="number" id="set-pos-limit" class="form-input" min="5" max="100" style="border:none;text-align:center;padding:0;background:transparent;font-weight:700;" readonly />
+                <button onclick="adjustPosLimit(5)" style="border:none;background:none;padding:0 0.75rem;cursor:pointer;color:var(--on-surface);"><span class="material-symbols-outlined" style="font-size:1.125rem;">add</span></button>
+              </div>
+            </div>
+          </div>
+          <p style="font-size:0.6875rem;color:var(--on-surface-variant);margin-top:0.25rem;">Choose a layout style and set the number of products displayed per page.</p>
         </div>
       </div>
 
@@ -174,6 +192,8 @@ function loadSettings() {
   // Preferences
   const prefs = State.settings || {};
   document.getElementById('set-terminal').value = prefs.terminal || 'Terminal 01';
+  document.getElementById('set-pos-size').value = prefs.posCardSize || 180;
+  document.getElementById('set-pos-limit').value = prefs.posItemsPerPage || 20;
 
   // Manager Only Section
   if (user.role === 'manager' || user.role === 'admin') {
@@ -250,10 +270,25 @@ window.updatePassword = async function() {
   }
 };
 
+window.adjustPosLimit = function(delta) {
+  const input = document.getElementById('set-pos-limit');
+  let val = parseInt(input.value) || 20;
+  val = Math.max(5, Math.min(100, val + delta));
+  input.value = val;
+  saveAppPrefs();
+};
+
 window.saveAppPrefs = async function() {
   const term = document.getElementById('set-terminal').value;
-  await State.updateSettings({ terminal: term });
-  showToast('Terminal preference saved', 'success');
+  const size = parseInt(document.getElementById('set-pos-size').value) || 180;
+  const limit = parseInt(document.getElementById('set-pos-limit').value) || 20;
+  
+  await State.updateSettings({ 
+    terminal: term,
+    posCardSize: size,
+    posItemsPerPage: limit
+  });
+  showToast('Preferences saved', 'success');
 };
 
 window.saveStorePrefs = async function() {

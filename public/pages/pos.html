@@ -1,17 +1,28 @@
 <!-- pages/pos.html - POS Cashier Interface -->
-<div class="fade-in page-layout-pos">
+<!-- Mobile Tab Bar (only visible on mobile) -->
+<div id="pos-mobile-tabs" style="display:none;background:#fff;border-bottom:1px solid var(--outline-variant);flex-direction:row;flex-shrink:0;z-index:90;position:fixed;top:var(--header-h);left:0;right:0;width:100%;">
+  <button id="tab-products" onclick="switchPosTab('products')" style="flex:1;padding:0.875rem;border:none;border-right:1px solid var(--outline-variant);background:var(--primary-container);color:#fff;font-size:0.75rem;font-weight:700;display:flex;align-items:center;justify-content:center;gap:0.5rem;cursor:pointer;">
+    <span class="material-symbols-outlined" style="font-size:1.125rem;">grid_view</span>Products
+  </button>
+  <button id="tab-cart" onclick="switchPosTab('cart')" style="flex:1;padding:0.875rem;border:none;background:#fff;color:var(--on-surface-variant);font-size:0.75rem;font-weight:700;display:flex;align-items:center;justify-content:center;gap:0.5rem;cursor:pointer;position:relative;">
+    <span class="material-symbols-outlined" style="font-size:1.125rem;">shopping_cart</span>Cart
+    <span id="mobile-cart-badge" style="display:none;position:absolute;top:0.25rem;right:1.5rem;background:var(--error);color:#fff;font-size:0.5rem;font-weight:700;border-radius:9999px;min-width:1rem;height:1rem;line-height:1rem;text-align:center;padding:0 0.25rem;"></span>
+  </button>
+</div>
+
+<div id="pos-layout" style="display:flex;height:calc(100vh - var(--header-h) - 3rem);overflow:hidden;" class="fade-in">
 
   <!-- LEFT: Product Grid -->
-  <section class="pos-left">
+  <section id="pos-products-panel" style="flex:1.5;display:flex;flex-direction:column;overflow:hidden;padding:1.5rem;gap:1rem;">
 
     <!-- Header + Filters -->
-    <div style="display:flex;flex-direction:column;gap:1rem;flex-shrink:0;">
+    <div id="pos-header-controls" style="display:flex;flex-direction:column;gap:1rem;flex-shrink:0;">
       <div style="display:flex;align-items:center;justify-content:space-between;">
         <div>
           <h1 style="font-size:1.5rem;font-weight:800;letter-spacing:-0.02em;color:#1e3a5f;">Inventory Selection</h1>
           <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--on-surface-variant);">Select products to add to cart</p>
         </div>
-        <div id="pos-search-container" style="display:flex;align-items:center;gap:0.5rem;width:300px;">
+        <div id="pos-search-row" style="display:flex;align-items:center;gap:0.5rem;width:300px;">
           <div style="background:#fff;border:1px solid rgba(196,198,207,0.5);border-radius:9999px;padding:0.5rem 1rem;display:flex;align-items:center;gap:0.5rem;flex:1;">
             <span class="material-symbols-outlined" style="font-size:1.125rem;color:#94a3b8;">search</span>
             <input type="text" id="pos-search" placeholder="Search products..." style="border:none;outline:none;background:transparent;width:100%;font-size:0.875rem;" oninput="debouncedSearchPos()" />
@@ -22,17 +33,14 @@
         </div>
       </div>
       <div style="display:flex;gap:0.5rem;overflow-x:auto;padding-bottom:0.25rem;" id="category-filters" class="custom-scroll">
-        <button class="filter-tab active" data-cat="" onclick="filterCategory(this,'')">All Items</button>
-        <button class="filter-tab" data-cat="Smartphones" onclick="filterCategory(this,'Smartphones')">Phones</button>
-        <button class="filter-tab" data-cat="Audio" onclick="filterCategory(this,'Audio')">Audio</button>
-        <button class="filter-tab" data-cat="Accessories" onclick="filterCategory(this,'Accessories')">Accessories</button>
-        <button class="filter-tab" data-cat="Wearables" onclick="filterCategory(this,'Wearables')">Wearables</button>
+        <!-- Categories will be rendered here dynamically -->
+        <button class="filter-tab active" onclick="filterCategory(this,'')">All Items</button>
       </div>
     </div>
 
     <!-- Product Grid -->
-    <div style="flex:1;overflow-y:auto;" class="custom-scroll">
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:1rem;" id="product-grid">
+    <div style="flex:1;overflow-y:auto;padding-right:1rem;padding-bottom:2rem;" class="custom-scroll" id="pos-product-scroll" onscroll="sessionStorage.setItem('gs_pos_scroll', this.scrollTop)">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--pos-card-size, 180px),1fr));gap:1.25rem;" id="product-grid">
         <div class="skeleton" style="height:12rem;border-radius:0.75rem;"></div>
         <div class="skeleton" style="height:12rem;border-radius:0.75rem;"></div>
         <div class="skeleton" style="height:12rem;border-radius:0.75rem;"></div>
@@ -44,10 +52,10 @@
   </section>
 
   <!-- DIVIDER -->
-  <div style="width:1px;background:rgba(196,198,207,0.15);"></div>
+  <div id="pos-divider" style="width:1px;background:rgba(196,198,207,0.15);"></div>
 
   <!-- RIGHT: Cart Panel -->
-  <section class="pos-right">
+  <section id="pos-cart-panel" style="width:22rem;display:flex;flex-direction:column;background:var(--surface-container-high);">
 
     <!-- Cart Header -->
     <div style="padding:1.5rem;border-bottom:1px solid rgba(196,198,207,0.1);background:rgba(255,255,255,0.5);backdrop-filter:blur(12px);">
@@ -71,15 +79,15 @@
     <!-- Totals & Checkout -->
     <div style="background:var(--surface-container-highest);border-radius:1.5rem 1.5rem 0 0;padding:1.5rem;box-shadow:0 -1rem 2.5rem rgba(0,0,0,0.05);">
       <div style="display:flex;flex-direction:column;gap:0.625rem;margin-bottom:1.5rem;">
-        <div style="display:flex;justify-content:space-between;font-size:0.8125rem;color:var(--on-surface-variant);">
-          <span>Subtotal</span><span id="cart-subtotal" class="text-rupiah" style="font-weight:600;">Rp 0</span>
+        <div style="display:flex;justify-content:space-between;font-size:0.875rem;color:var(--on-surface-variant);">
+          <span>Subtotal</span><span id="cart-subtotal" class="text-rupiah" style="font-weight:700;color:#1e3a5f;">Rp 0</span>
         </div>
-        <div style="display:flex;justify-content:space-between;font-size:0.8125rem;color:var(--on-surface-variant);">
-          <span id="cart-tax-label">Tax</span><span id="cart-tax" class="text-rupiah" style="font-weight:600;">Rp 0</span>
+        <div style="display:flex;justify-content:space-between;font-size:0.875rem;color:var(--on-surface-variant);">
+          <span id="cart-tax-label">Tax</span><span id="cart-tax" class="text-rupiah" style="font-weight:700;color:#1e3a5f;">Rp 0</span>
         </div>
         <div style="border-top:1px solid rgba(196,198,207,0.2);padding-top:0.875rem;display:flex;justify-content:space-between;align-items:flex-end;">
           <div>
-            <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;color:var(--on-primary-container);opacity:0.5;">Grand Total</p>
+            <p style="font-size:0.6875rem;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;color:#1e3a5f;opacity:0.6;">Grand Total</p>
             <p id="cart-total" style="font-size:2rem;font-weight:800;letter-spacing:-0.03em;color:#1e3a5f;" class="text-rupiah">Rp 0</p>
           </div>
           <span id="cart-items-count" style="font-size:0.75rem;color:var(--on-surface-variant);">0 items</span>
@@ -97,7 +105,7 @@
 </div>
 
 <style>
-.filter-tab{padding:0.375rem 0.875rem;border-radius:9999px;border:none;cursor:pointer;font-size:0.75rem;font-weight:600;background:transparent;color:var(--on-surface-variant);transition:all 0.15s;}
+.filter-tab{padding:0.375rem 0.875rem;border-radius:9999px;border:none;cursor:pointer;font-size:0.75rem;font-weight:600;background:transparent;color:var(--on-surface-variant);transition:all 0.15s;white-space:nowrap;}
 .filter-tab.active{background:#fff;color:#1e3a5f;box-shadow:0 1px 3px rgba(0,0,0,0.08);}
 .filter-tab:hover:not(.active){background:rgba(255,255,255,0.5);}
 .product-card{background:var(--surface-container-lowest);border-radius:0.75rem;overflow:hidden;cursor:pointer;transition:all 0.15s;border:1.5px solid transparent;}
@@ -107,6 +115,58 @@
 .product-card.out-of-stock{opacity:0.5;cursor:not-allowed;}
 .cart-item{background:var(--surface-container-lowest);border-radius:0.75rem;padding:0.875rem;display:flex;gap:0.875rem;position:relative;}
 .custom-scroll::-webkit-scrollbar{width:4px;}.custom-scroll::-webkit-scrollbar-thumb{background:var(--outline-variant);border-radius:9999px;}
+
+/* ── Mobile POS overrides ── */
+@media (max-width: 767px) {
+  #pos-layout {
+    flex-direction: column !important;
+    height: auto !important;
+    overflow: visible !important;
+    margin: -0.875rem !important;
+    padding-top: 3.5rem !important; /* Space for fixed tabs */
+    min-height: calc(100vh - var(--header-h) - 7rem) !important;
+  }
+  #pos-products-panel {
+    flex: none !important;
+    width: 100% !important;
+    overflow: visible !important;
+    height: auto !important;
+    min-height: calc(100vh - var(--header-h) - 7rem);
+    padding: 1rem !important;
+  }
+  #pos-products-panel > div:last-child {
+    overflow: visible !important;
+    flex: none !important;
+  }
+  #product-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important;
+    gap: 0.875rem !important;
+  }
+  #pos-cart-panel {
+    display: none !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: calc(100vh - var(--header-h) - 7rem);
+    position: static !important;
+  }
+  #pos-cart-panel.mobile-active {
+    display: flex !important;
+  }
+  #pos-products-panel.mobile-hidden {
+    display: none !important;
+  }
+  #pos-divider { display: none !important; }
+  #pos-mobile-tabs { display: flex !important; flex-direction: row !important; }
+  #pos-search-row { width: 100% !important; }
+  #pos-header-controls > div:first-child {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.5rem !important;
+  }
+  #pos-header-controls > div:first-child > div:first-child {
+    display: none !important; /* hide "Inventory Selection" title on mobile to save space */
+  }
+}
 </style>
 
 <script type="module">
@@ -126,11 +186,35 @@ window.debouncedSearchPos = debounce(() => {
 // Generate order ID
 document.getElementById('order-id').textContent = 'ID: ' + Math.floor(100 + Math.random() * 900) + '-' + String.fromCharCode(65 + Math.floor(Math.random()*26));
 
+async function loadCategories() {
+  try {
+    const { products } = await ProductsAPI.list({ limit: 200 }); // Fetch enough to get categories
+    const categories = [...new Set(products.map(p => p.category).filter(Boolean))];
+    const container = document.getElementById('category-filters');
+    const allBtn = container.querySelector('button');
+    container.innerHTML = '';
+    container.appendChild(allBtn);
+    
+    categories.forEach(cat => {
+      const btn = document.createElement('button');
+      btn.className = 'filter-tab';
+      btn.textContent = cat;
+      btn.onclick = () => filterCategory(btn, cat);
+      container.appendChild(btn);
+    });
+  } catch (err) { console.error('Failed to load categories', err); }
+}
+
 async function loadProducts(cat = '', search = '') {
   const grid = document.getElementById('product-grid');
   grid.innerHTML = Array(6).fill(`<div class="skeleton" style="height:12rem;border-radius:0.75rem;"></div>`).join('');
+  
+  // Apply settings-based grid size
+  const cardSize = State.settings.posCardSize || 180;
+  grid.style.setProperty('--pos-card-size', `${cardSize}px`);
+
   try {
-    const params = { limit: 50 };
+    const params = { limit: State.settings.posItemsPerPage || 20 };
     if (cat) params.category = cat;
     if (search) params.search = search;
     const { products } = await ProductsAPI.list(params);
@@ -163,13 +247,15 @@ function renderGrid(products) {
         <div style="position:absolute;top:0.5rem;left:0.5rem;display:flex;flex-direction:column;gap:0.25rem;">
            ${low ? '<span style="font-size:0.6rem;background:rgba(255,219,206,0.9);color:#7c2d12;padding:0.125rem 0.5rem;border-radius:9999px;font-weight:700;text-transform:uppercase;backdrop-filter:blur(4px);">Low Stock</span>' : ''}
            ${oos ? '<span style="font-size:0.6rem;background:rgba(186,26,26,0.9);color:#fff;padding:0.125rem 0.5rem;border-radius:9999px;font-weight:700;text-transform:uppercase;backdrop-filter:blur(4px);">Out of Stock</span>' : ''}
+           <span style="font-size:0.6rem;background:rgba(30,58,95,0.8);color:#fff;padding:0.125rem 0.5rem;border-radius:9999px;font-weight:700;backdrop-filter:blur(4px);align-self:flex-start;">${p.stock} STK</span>
         </div>
       </div>
-      <div style="padding:0.875rem;flex:1;display:flex;flex-direction:column;justify-content:space-between;gap:0.5rem;">
-        <h4 style="font-size:0.875rem;font-weight:700;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;color:#1e3a5f;margin:0;">${p.name}</h4>
-        <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:auto;">
-          <span style="font-size:0.875rem;font-weight:800;color:#1e3a5f;" class="text-rupiah">${formatRupiah(p.price_sell)}</span>
-          <span style="font-size:0.625rem;background:var(--secondary-container);color:var(--on-secondary-container);padding:0.125rem 0.5rem;border-radius:9999px;font-weight:700;">${p.stock} STK</span>
+      <div style="padding:1rem;flex:1;display:flex;flex-direction:column;gap:0.75rem;">
+        <div style="height:2.6em;display:flex;align-items:flex-start;overflow:hidden;">
+          <h4 style="font-size:0.8125rem;font-weight:700;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;color:#1e3a5f;margin:0;text-align:left;">${p.name}</h4>
+        </div>
+        <div style="margin-top:auto;">
+          <span style="font-size:0.875rem;font-weight:800;color:#1e3a5f;white-space:nowrap;" class="text-rupiah">${formatRupiah(p.price_sell)}</span>
         </div>
       </div>
     </div>`;
@@ -183,6 +269,13 @@ function renderGrid(products) {
       if (product) { State.addToCart(product); showToast(`${product.name} added to cart`, 'success', 1500); }
     });
   });
+
+  // Restore scroll position
+  const scrollArea = document.getElementById('pos-product-scroll');
+  const savedScroll = sessionStorage.getItem('gs_pos_scroll');
+  if (savedScroll && scrollArea) {
+    setTimeout(() => { scrollArea.scrollTop = parseInt(savedScroll); }, 150);
+  }
 }
 
 function renderCart() {
@@ -195,13 +288,25 @@ function renderCart() {
   const cart = State.cart;
   const { subtotal, tax, total } = State.getCartTotals();
   const taxRatePct = (State.settings.taxRate * 100).toFixed(1).replace(/\.0$/, '');
+  const totalQty = cart.reduce((s,i)=>s+i.qty,0);
 
   const taxLabel = document.getElementById('cart-tax-label');
   if (taxLabel) taxLabel.textContent = `Tax (${taxRatePct}%)`;
   document.getElementById('cart-subtotal').textContent = formatRupiah(subtotal);
   document.getElementById('cart-tax').textContent = formatRupiah(tax);
   document.getElementById('cart-total').textContent = formatRupiah(total);
-  document.getElementById('cart-items-count').textContent = `${cart.reduce((s,i)=>s+i.qty,0)} items`;
+  document.getElementById('cart-items-count').textContent = `${totalQty} items`;
+
+  // Update mobile badge
+  const badge = document.getElementById('mobile-cart-badge');
+  if (badge) {
+    if (totalQty > 0) {
+      badge.textContent = totalQty > 99 ? '99+' : totalQty;
+      badge.style.display = 'block';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
 
   if (!cart.length) {
     container.innerHTML = `<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0.3;padding:2rem;"><span class="material-symbols-outlined" style="font-size:3rem;">shopping_bag</span><p style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;margin-top:0.5rem;">Cart is empty</p></div>`;
@@ -221,18 +326,19 @@ function renderCart() {
         ${imgHtml}
       </div>
       <div style="flex:1;min-width:0;">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-          <p style="font-size:0.8125rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:10rem;">${item.name}</p>
-          <span style="font-size:0.8125rem;font-weight:700;" class="text-rupiah">${formatRupiah(item.price * item.qty)}</span>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;">
+          <p style="font-size:0.8125rem;font-weight:700;color:#1e3a5f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">${item.name}</p>
         </div>
-        <p style="font-size:0.625rem;color:var(--on-surface-variant);text-transform:uppercase;">${formatRupiah(item.price)} / unit</p>
+        <p style="font-size:0.6875rem;color:var(--on-surface-variant);font-weight:500;">
+          ${formatRupiah(item.price)} / unit <span style="margin:0 0.25rem;opacity:0.3;">•</span> <span style="font-weight:700;color:#1e3a5f;">${formatRupiah(item.price * item.qty)}</span>
+        </p>
         <div style="display:flex;align-items:center;gap:0.75rem;margin-top:0.5rem;">
           <div style="display:flex;align-items:center;background:var(--surface-container-low);border-radius:0.5rem;overflow:hidden;">
             <button onclick="updateQty('${item.product_id}', ${item.qty - 1})" style="border:none;background:none;padding:0.25rem 0.5rem;cursor:pointer;font-size:1.125rem;line-height:1;color:var(--on-surface);">−</button>
-            <span style="padding:0.25rem 0.5rem;font-size:0.8125rem;font-weight:700;">${item.qty}</span>
+            <span style="padding:0.25rem 0.5rem;font-size:0.8125rem;font-weight:700;color:var(--on-surface);">${item.qty}</span>
             <button onclick="updateQty('${item.product_id}', ${item.qty + 1})" style="border:none;background:none;padding:0.25rem 0.5rem;cursor:pointer;font-size:1.125rem;line-height:1;color:var(--on-surface);">+</button>
           </div>
-          <button onclick="removeItem('${item.product_id}')" style="border:none;background:none;cursor:pointer;font-size:0.625rem;font-weight:700;color:var(--error);text-transform:uppercase;letter-spacing:0.1em;">Remove</button>
+          <button onclick="removeItem('${item.product_id}')" style="border:none;background:none;cursor:pointer;font-size:0.6875rem;font-weight:700;color:var(--error);text-transform:uppercase;letter-spacing:0.05em;">Remove</button>
         </div>
       </div>
     </div>
@@ -255,8 +361,36 @@ window.goCheckout = () => {
   navigate('/checkout');
 };
 
+// Mobile tab switching
+window.switchPosTab = function(tab) {
+  const productsPanel = document.getElementById('pos-products-panel');
+  const cartPanel     = document.getElementById('pos-cart-panel');
+  const tabProducts   = document.getElementById('tab-products');
+  const tabCart       = document.getElementById('tab-cart');
+  if (!tabProducts) return; // desktop mode, ignore
+
+  if (tab === 'products') {
+    productsPanel.classList.remove('mobile-hidden');
+    cartPanel.classList.remove('mobile-active');
+    tabProducts.style.background = 'var(--primary-container)';
+    tabProducts.style.color = '#fff';
+    tabCart.style.background = '#fff';
+    tabCart.style.color = 'var(--on-surface-variant)';
+  } else {
+    productsPanel.classList.add('mobile-hidden');
+    cartPanel.classList.add('mobile-active');
+    tabProducts.style.background = '#fff';
+    tabProducts.style.color = 'var(--on-surface-variant)';
+    tabCart.style.background = 'var(--primary-container)';
+    tabCart.style.color = '#fff';
+  }
+};
+
 State.on('cart', renderCart);
-State.on('settings', renderCart);
+State.on('settings', () => {
+  renderCart();
+  loadProducts(currentCategory, currentSearch);
+});
 
 // ─── Scanner Implementation ───────────────────────────────────────
 let html5QrCode = null;
@@ -314,6 +448,12 @@ window.closeScanner = async function() {
   document.getElementById('scanner-modal').style.display = 'none';
 };
 
-renderCart();
-loadProducts();
+async function init() {
+  await loadCategories();
+  loadProducts();
+  renderCart();
+  State.on('cart', renderCart);
+}
+
+init();
 </script>

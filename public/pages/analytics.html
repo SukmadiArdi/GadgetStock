@@ -1,6 +1,6 @@
 <!-- pages/analytics.html -->
 <div class="fade-in">
-  <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:2rem;">
+  <div class="analytics-header-row" style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:2rem;">
     <div>
       <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.15em;font-weight:700;color:var(--on-surface-variant);">Business Intelligence</p>
       <h1 style="font-size:1.875rem;font-weight:800;color:#1e3a5f;">Monthly Analytics</h1>
@@ -14,8 +14,8 @@
   </div>
 
   <!-- KPI Cards -->
-  <div class="grid-cols-4" style="margin-bottom:2rem;">
-    <div class="card-hero col-span-2-desktop" style="padding:1.5rem;">
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;">
+    <div class="card-hero" style="padding:1.5rem;grid-column:span 2;">
       <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--on-primary-container);">Monthly Revenue</p>
       <h3 id="a-revenue" style="font-size:2rem;font-weight:800;color:#fff;margin:0.25rem 0;" class="text-rupiah">—</h3>
       <div style="display:flex;align-items:center;gap:0.5rem;">
@@ -33,7 +33,7 @@
     </div>
   </div>
 
-  <div class="page-layout-2col">
+  <div class="two-col-grid" style="display:grid;grid-template-columns:1fr 1.2fr;gap:1.5rem;">
     <!-- Daily Revenue Chart -->
     <div class="card" style="padding:1.5rem;">
       <h2 style="font-size:0.875rem;font-weight:700;color:#1e3a5f;margin-bottom:1.25rem;">Revenue — Daily Breakdown</h2>
@@ -82,7 +82,14 @@ async function loadAnalytics() {
     document.getElementById('daily-chart').innerHTML = data.daily.map(d => {
       const pct = Math.max(2, (d.revenue / maxRev) * 100);
       const isWeekend = (new Date(month + '-' + String(d.day).padStart(2,'0'))).getDay() % 6 === 0;
-      return `<div title="Day ${d.day}: ${formatRupiah(d.revenue)}" style="flex:1;background:${d.revenue>0?(isWeekend?'rgba(0,31,63,0.5)':'var(--primary-container)'):'var(--surface-container-high)'};border-radius:2px 2px 0 0;height:${pct}%;cursor:default;transition:height 0.5s;"></div>`;
+      const isActive = d.revenue > 0;
+      return `<div title="Day ${d.day}: ${formatRupiah(d.revenue)}" 
+        onclick="showToast('Day ${d.day}: ${formatRupiah(d.revenue)}', 'info', 2000)"
+        style="flex:1; background:${isActive ? (isWeekend ? 'linear-gradient(to top, #64748b, #94a3b8)' : 'linear-gradient(to top, var(--primary-container), #3b82f6)') : 'var(--surface-container-high)'}; 
+        border-radius:4px 4px 0 0; height:${pct}%; cursor:pointer; transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+        box-shadow: ${isActive ? '0 4px 12px rgba(59, 130, 246, 0.2)' : 'none'};"
+        onmouseover="this.style.opacity='0.8'; this.style.transform='scaleY(1.02)'" 
+        onmouseout="this.style.opacity='1'; this.style.transform='scaleY(1)'"></div>`;
     }).join('');
 
     // Top products

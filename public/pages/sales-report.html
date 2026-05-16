@@ -1,62 +1,94 @@
 <!-- pages/sales-report.html -->
-<div class="fade-in">
-  <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:2rem;">
+<style>
+  .report-container { display: flex; flex-direction: column; gap: 0; height: auto; overflow: visible; }
+  .report-top-section { flex-shrink: 0; margin-bottom: 0.5rem; }
+  .report-table-card { margin-top: 1.5rem; display: flex; flex-direction: column; overflow: hidden; min-height: 400px; }
+  
+  @media (min-width: 768px) {
+    .report-container { height: calc(100vh - var(--header-h) - 3rem); overflow: hidden; }
+    .report-top-section { overflow-y: auto; padding-right: 0.5rem; }
+    .report-table-card { flex: 1; min-height: 0; }
+  }
+</style>
+
+<div class="fade-in report-container">
+  <div class="report-header-row analytics-header-row" style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:1.5rem;flex-shrink:0;">
     <div>
       <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.15em;font-weight:700;color:var(--on-surface-variant);">Reports</p>
       <h1 style="font-size:1.875rem;font-weight:800;color:#1e3a5f;">Daily Sales Report</h1>
     </div>
-    <div style="display:flex;gap:0.75rem;align-items:center;height:2.5rem;">
-      <input type="date" id="report-date" class="form-input" style="width:11rem;height:100%;margin:0;" onchange="loadReport()" />
-      <button class="btn btn-primary btn-sm" id="btn-export-sales" onclick="exportExcel()" style="display:flex;align-items:center;justify-content:center;gap:0.5rem;height:100%;padding:0 1.25rem;font-weight:600;margin:0;">
+    <div style="display:flex;gap:0.75rem;align-items:center;">
+      <input type="date" id="report-date" class="form-input" style="width:11rem;height:2.5rem;margin:0;" onchange="loadReport()" />
+      <button class="btn btn-primary btn-sm" id="btn-export-sales" onclick="exportExcel()" style="display:flex;align-items:center;justify-content:center;gap:0.5rem;height:2.5rem;padding:0 1.25rem;font-weight:600;margin:0;">
         <span class="material-symbols-outlined" style="font-size:1.125rem;">grid_on</span> Export Excel
       </button>
     </div>
   </div>
 
-  <!-- KPI Cards -->
-  <div class="grid-cols-4" style="margin-bottom:2rem;" id="report-kpis">
-    <div class="card" style="padding:1.25rem;">
-      <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;color:var(--on-surface-variant);">Total Revenue</p>
-      <h3 id="r-revenue" style="font-size:1.5rem;font-weight:800;color:#1e3a5f;margin-top:0.25rem;" class="text-rupiah">—</h3>
-    </div>
-    <div class="card" style="padding:1.25rem;">
-      <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;color:var(--on-surface-variant);">Total Orders</p>
-      <h3 id="r-orders" style="font-size:1.5rem;font-weight:800;color:#1e3a5f;margin-top:0.25rem;">—</h3>
-    </div>
-    <div class="card" style="padding:1.25rem;">
-      <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;color:var(--on-surface-variant);">Avg. Order Value</p>
-      <h3 id="r-avg" style="font-size:1.5rem;font-weight:800;color:#1e3a5f;margin-top:0.25rem;" class="text-rupiah">—</h3>
-    </div>
-    <div class="card" style="padding:1.25rem;">
-      <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;color:var(--on-surface-variant);">Items Sold</p>
-      <h3 id="r-items" style="font-size:1.5rem;font-weight:800;color:#1e3a5f;margin-top:0.25rem;">—</h3>
-    </div>
-  </div>
-
-  <div class="page-layout-2col">
-    <!-- Hourly Chart -->
-    <div class="card" style="padding:1.5rem;">
-      <h2 style="font-size:0.875rem;font-weight:700;color:#1e3a5f;margin-bottom:1.25rem;">Revenue by Hour</h2>
-      <div id="hourly-chart" style="display:flex;align-items:flex-end;gap:3px;height:10rem;"></div>
-      <div id="hour-labels" style="display:flex;gap:3px;margin-top:0.375rem;"></div>
+  <div class="report-top-section custom-scroll">
+    <!-- KPI Cards -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem;" id="report-kpis">
+      <div class="card" style="padding:1.25rem;">
+        <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;color:var(--on-surface-variant);">Total Revenue</p>
+        <h3 id="r-revenue" style="font-size:1.5rem;font-weight:800;color:#1e3a5f;margin-top:0.25rem;" class="text-rupiah">—</h3>
+      </div>
+      <div class="card" style="padding:1.25rem;">
+        <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;color:var(--on-surface-variant);">Total Orders</p>
+        <h3 id="r-orders" style="font-size:1.5rem;font-weight:800;color:#1e3a5f;margin-top:0.25rem;">—</h3>
+      </div>
+      <div class="card" style="padding:1.25rem;">
+        <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;color:var(--on-surface-variant);">Avg. Order Value</p>
+        <h3 id="r-avg" style="font-size:1.5rem;font-weight:800;color:#1e3a5f;margin-top:0.25rem;" class="text-rupiah">—</h3>
+      </div>
+      <div class="card" style="padding:1.25rem;">
+        <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;color:var(--on-surface-variant);">Items Sold</p>
+        <h3 id="r-items" style="font-size:1.5rem;font-weight:800;color:#1e3a5f;margin-top:0.25rem;">—</h3>
+      </div>
     </div>
 
-    <!-- Top Products -->
-    <div class="card" style="padding:1.5rem;">
-      <h2 style="font-size:0.875rem;font-weight:700;color:#1e3a5f;margin-bottom:1.25rem;">Top Products</h2>
-      <div id="top-products" style="display:flex;flex-direction:column;gap:0.75rem;"></div>
+    <div class="two-col-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+      <!-- Hourly Chart -->
+      <div class="card" style="padding:1.5rem;">
+        <h2 style="font-size:0.875rem;font-weight:700;color:#1e3a5f;margin-bottom:1.25rem;">Revenue by Hour</h2>
+        <div style="position:relative; padding-bottom:1.5rem;">
+          <div id="hourly-chart" style="display:flex;align-items:flex-end;gap:4px;height:10rem;border-bottom:1px solid var(--outline-variant);padding-bottom:2px;"></div>
+          <div id="hour-labels" style="display:flex;gap:4px;margin-top:0.5rem;"></div>
+        </div>
+      </div>
+
+      <!-- Top Products -->
+      <div class="card" style="padding:1.5rem;">
+        <h2 style="font-size:0.875rem;font-weight:700;color:#1e3a5f;margin-bottom:1.25rem;">Top Products</h2>
+        <div id="top-products" style="display:flex;flex-direction:column;gap:0.75rem;"></div>
+      </div>
     </div>
   </div>
 
   <!-- Transactions Table -->
-  <div class="card" style="margin-top:1.5rem;overflow:hidden;">
-    <div style="padding:1rem 1.5rem;border-bottom:1px solid rgba(196,198,207,0.1);">
+  <div class="card report-table-card">
+    <div style="padding:1rem 1.5rem;border-bottom:1px solid rgba(196,198,207,0.1);display:flex;justify-content:space-between;align-items:center;">
       <h2 style="font-size:0.875rem;font-weight:700;color:#1e3a5f;">Transactions</h2>
+      <p id="report-pag-info" style="font-size:0.75rem;color:var(--on-surface-variant);font-weight:600;"></p>
     </div>
-    <table class="data-table">
-      <thead><tr><th>TXN #</th><th>Time</th><th>Customer</th><th style="text-align:right;">Total</th><th>Method</th></tr></thead>
-      <tbody id="report-txn-tbody"></tbody>
-    </table>
+    <div style="flex:1;overflow-y:auto;" class="custom-scroll">
+      <table class="data-table" style="border-top:none;">
+        <thead style="position:sticky;top:0;z-index:10;background:var(--surface-container-lowest);">
+          <tr>
+            <th>TXN #</th>
+            <th>Time</th>
+            <th>Customer</th>
+            <th>Items</th>
+            <th style="text-align:right;">Total</th>
+            <th>Method</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="report-txn-tbody"></tbody>
+      </table>
+    </div>
+    <div class="pagination" id="report-pagination" style="display:none;padding:0.75rem 1.5rem;border-top:1px solid rgba(196,198,207,0.1);background:var(--surface-container-lowest);justify-content:flex-end;">
+      <div class="pagination-controls" id="report-pag-ctrl"></div>
+    </div>
   </div>
 </div>
 
@@ -83,16 +115,26 @@ async function loadReport() {
 
     // Hourly chart
     const maxRev = Math.max(...data.hourly.map(h=>h.revenue), 1);
-    const peakHours = [9,10,11,12,13,14,15,16,17,18,19,20]; // business hours
+    const peakHours = Array.from({length: 16}, (_, i) => i + 7); // 07:00 to 22:00
     const chartDiv = document.getElementById('hourly-chart');
     const labelDiv = document.getElementById('hour-labels');
-    chartDiv.innerHTML = data.hourly.filter(h=>peakHours.includes(h.hour)).map(h => {
-      const pct = Math.max(4, (h.revenue / maxRev) * 100);
+    
+    const filteredHours = data.hourly.filter(h => peakHours.includes(h.hour));
+    
+    chartDiv.innerHTML = filteredHours.map(h => {
+      const pct = Math.max(0, (h.revenue / maxRev) * 100);
       const isActive = h.revenue > 0;
-      return `<div title="${h.label}: ${formatRupiah(h.revenue)}" style="flex:1;background:${isActive?'var(--primary-container)':'var(--surface-container-high)'};border-radius:4px 4px 0 0;height:${pct}%;cursor:default;transition:height 0.5s;"></div>`;
+      const formatted = formatRupiah(h.revenue);
+      return `<div title="${h.label}: ${formatted}" 
+        onclick="showToast('${h.label}: ${formatted}', 'info', 2000)"
+        style="flex:1; background:${isActive ? 'linear-gradient(to top, var(--primary-container), #3b82f6)' : 'var(--surface-container-high)'}; 
+        border-radius:4px 4px 0 0; height:${pct}%; cursor:pointer; transition:all 0.3s ease;
+        box-shadow: ${isActive ? '0 4px 10px rgba(59, 130, 246, 0.15)' : 'none'};"
+        onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'"></div>`;
     }).join('');
-    labelDiv.innerHTML = data.hourly.filter(h=>peakHours.includes(h.hour)).map(h =>
-      `<div style="flex:1;font-size:0.5rem;text-align:center;color:var(--on-surface-variant);">${h.hour}</div>`
+
+    labelDiv.innerHTML = filteredHours.map((h, i) =>
+      `<div style="flex:1;font-size:0.625rem;text-align:center;color:var(--on-surface-variant);font-weight:600;">${h.hour % 2 === 0 || i === 0 || i === filteredHours.length-1 ? h.hour : ''}</div>`
     ).join('');
 
     // Top products
@@ -116,18 +158,72 @@ async function loadReport() {
         </div>`).join('');
     }
 
-    // Transactions table
-    const tbody = document.getElementById('report-txn-tbody');
+    // Transactions table pagination
+    const txnLimit = 5;
+    let txnPage = 1;
+    const methodIcons = { cash:'payments', qris:'qr_code_scanner', debit:'credit_card', credit:'credit_score' };
+
+    window.renderTxnPage = (page) => {
+      txnPage = page;
+      const start = (txnPage - 1) * txnLimit;
+      const end = start + txnLimit;
+      const pageTxns = data.transactions.slice(start, end);
+      const totalPages = Math.ceil(data.transactions.length / txnLimit);
+
+      const tbody = document.getElementById('report-txn-tbody');
+      tbody.innerHTML = pageTxns.map(t => {
+        const items = (t.transaction_items||[]);
+        const itemSummary = items.length > 0 ? `${items.length} item${items.length>1?'s':''}` : '—';
+        const methodIcon  = methodIcons[t.payment_method] || 'payments';
+        const statusColor = t.status === 'completed' ? '#15803d' : t.status === 'voided' ? 'var(--error)' : '#b45309';
+        
+        return `<tr>
+          <td><span style="font-family:monospace;font-size:0.75rem;font-weight:700;color:#1e3a5f;">${t.txn_number}</span></td>
+          <td style="font-size:0.8125rem;">${formatDate(t.created_at,'time')}</td>
+          <td style="font-size:0.8125rem;">${t.customer_name||'Walk-in'}</td>
+          <td style="font-size:0.8125rem;color:var(--on-surface-variant);">${itemSummary}</td>
+          <td style="text-align:right;font-weight:700;" class="text-rupiah">${formatRupiah(t.total)}</td>
+          <td>
+            <div style="display:flex;align-items:center;gap:0.375rem;font-size:0.8125rem;text-transform:capitalize;">
+              <span class="material-symbols-outlined" style="font-size:1rem;color:var(--on-surface-variant);">${methodIcon}</span>
+              ${t.payment_method||'—'}
+            </div>
+          </td>
+          <td>
+            <span style="display:inline-flex;align-items:center;gap:0.25rem;font-size:0.6875rem;font-weight:700;text-transform:uppercase;color:${statusColor};background:${statusColor}15;padding:0.25rem 0.625rem;border-radius:var(--radius-full);">
+              <span class="material-symbols-outlined" style="font-size:0.875rem;">${t.status==='completed'?'check_circle':t.status==='voided'?'cancel':'pending'}</span>
+              ${t.status}
+            </span>
+          </td>
+        </tr>`;
+      }).join('');
+
+      document.getElementById('report-pag-info').textContent = `Page ${txnPage} of ${totalPages}`;
+      
+      const pagCtrl = document.getElementById('report-pag-ctrl');
+      const pagWrap = document.getElementById('report-pagination');
+      
+      if (totalPages > 1) {
+        pagWrap.style.display = 'flex';
+        pagCtrl.innerHTML = `
+          <button class="page-btn" onclick="renderTxnPage(${txnPage-1})" ${txnPage<=1?'disabled':''}>
+            <span class="material-symbols-outlined" style="font-size:1.125rem;">chevron_left</span>
+          </button>
+          <span class="page-btn active">${txnPage}</span>
+          <button class="page-btn" onclick="renderTxnPage(${txnPage+1})" ${txnPage>=totalPages?'disabled':''}>
+            <span class="material-symbols-outlined" style="font-size:1.125rem;">chevron_right</span>
+          </button>`;
+      } else {
+        pagWrap.style.display = 'none';
+      }
+    };
+
     if (!data.transactions.length) {
-      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--outline);">No transactions on this date</td></tr>`;
+      document.getElementById('report-txn-tbody').innerHTML = `<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--outline);">No transactions on this date</td></tr>`;
+      document.getElementById('report-pagination').style.display = 'none';
+      document.getElementById('report-pag-info').textContent = '';
     } else {
-      tbody.innerHTML = data.transactions.map(t => `<tr>
-        <td><span style="font-family:monospace;font-size:0.75rem;font-weight:700;">${t.txn_number}</span></td>
-        <td style="font-size:0.8125rem;">${formatDate(t.created_at,'time')}</td>
-        <td style="font-size:0.8125rem;">${t.customer_name||'Walk-in'}</td>
-        <td style="text-align:right;font-weight:700;" class="text-rupiah">${formatRupiah(t.total)}</td>
-        <td style="text-transform:capitalize;font-size:0.8125rem;">${t.payment_method||'—'}</td>
-      </tr>`).join('');
+      renderTxnPage(1);
     }
   } catch (err) {
     document.getElementById('r-revenue').textContent = formatRupiah(0);

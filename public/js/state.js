@@ -23,11 +23,18 @@ const State = {
     receiptFooter: 'Terima kasih telah berbelanja!',
     taxRate: 0.11, // 11%
     lowStockThreshold: 10,
+    posCardSize: 180, // min width in px
+    posItemsPerPage: 20,
     enabledPaymentMethods: ['cash', 'debit', 'qris', 'credit']
   },
-
-  // Last completed transaction (for receipt page)
-  currentTxn: null,
+  
+  // Persistent cart
+  cart: (() => {
+    try {
+      const stored = localStorage.getItem('gs_cart');
+      return stored ? JSON.parse(stored) : [];
+    } catch(e) { return []; }
+  })(),
 
   // Listeners for state changes
   _listeners: {},
@@ -105,6 +112,8 @@ const State = {
       if (newSettings.taxRate !== undefined) payload.tax_rate = newSettings.taxRate;
       if (newSettings.receiptFooter !== undefined) payload.receipt_footer = newSettings.receiptFooter;
       if (newSettings.lowStockThreshold !== undefined) payload.low_stock_threshold = newSettings.lowStockThreshold;
+      if (newSettings.posCardSize !== undefined) payload.pos_card_size = newSettings.posCardSize;
+      if (newSettings.posItemsPerPage !== undefined) payload.pos_items_per_page = newSettings.posItemsPerPage;
       if (newSettings.enabledPaymentMethods !== undefined) payload.enabled_payment_methods = JSON.stringify(newSettings.enabledPaymentMethods);
       
       if (Object.keys(payload).length > 0) {
@@ -130,6 +139,8 @@ const State = {
           taxRate: parseFloat(data.tax_rate) || this.settings.taxRate,
           receiptFooter: data.receipt_footer || this.settings.receiptFooter,
           lowStockThreshold: parseInt(data.low_stock_threshold) || this.settings.lowStockThreshold,
+          posCardSize: parseInt(data.pos_card_size) || this.settings.posCardSize,
+          posItemsPerPage: parseInt(data.pos_items_per_page) || this.settings.posItemsPerPage,
           enabledPaymentMethods: data.enabled_payment_methods ? JSON.parse(data.enabled_payment_methods) : this.settings.enabledPaymentMethods
         };
         this.settings = updated;
@@ -176,6 +187,9 @@ const State = {
   },
 
   _emit(event) {
+    if (event === 'cart') {
+      localStorage.setItem('gs_cart', JSON.stringify(this.cart));
+    }
     (this._listeners[event] || []).forEach(cb => cb(this));
   }
 };
