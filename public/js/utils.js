@@ -95,11 +95,17 @@ export function showToast(message, type = 'info', duration = 3000) {
     <span class="material-symbols-outlined" style="font-size:1.25rem">${icons[type] || 'info'}</span>
     <span>${message}</span>
   `;
+  
+  // Limit to 3 toasts
+  if (container.children.length >= 3) {
+    container.removeChild(container.firstChild);
+  }
+  
   container.appendChild(toast);
   setTimeout(() => {
     toast.style.opacity = '0';
-    toast.style.transition = 'opacity 0.3s';
-    setTimeout(() => toast.remove(), 300);
+    toast.style.transform = 'translateX(100%)';
+    setTimeout(() => { if (toast.parentNode) container.removeChild(toast); }, 300);
   }, duration);
 }
 

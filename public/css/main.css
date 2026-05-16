@@ -511,6 +511,7 @@ body {
   font-weight: 500;
   min-width: 280px;
   animation: slideInRight 0.25s ease;
+  transition: all 0.3s ease;
 }
 .toast-success { background: #15803d; }
 .toast-error   { background: var(--error); }
