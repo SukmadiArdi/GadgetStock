@@ -10,7 +10,7 @@
         <span class="material-symbols-outlined" style="font-size:1.125rem;color:#94a3b8;">search</span>
         <input type="text" id="search-filter" placeholder="Search..." style="border:none;outline:none;background:transparent;width:100%;font-size:0.875rem;" oninput="debouncedSearchInv()" />
       </div>
-      <select id="cat-filter" class="form-input form-select" style="width:auto;" onchange="loadInventory()">
+      <select id="cat-filter" class="form-input form-select" style="width:auto;" onchange="filterInventory()">
         <option value="">All Categories</option>
         <option value="Smartphones">Smartphones</option>
         <option value="Wearables">Wearables</option>
@@ -19,7 +19,7 @@
         <option value="Tablets">Tablets</option>
         <option value="Laptops">Laptops</option>
       </select>
-      <select id="status-filter" class="form-input form-select" style="width:auto;" onchange="loadInventory()">
+      <select id="status-filter" class="form-input form-select" style="width:auto;" onchange="filterInventory()">
         <option value="">All Status</option>
         <option value="in_stock">In Stock</option>
         <option value="low_stock">Low Stock</option>
@@ -100,9 +100,25 @@ const limit = 12;
 let searchTimeout;
 
 window.debouncedSearchInv = debounce(() => {
+  filterInventory();
+}, 300);
+
+window.filterInventory = () => {
   currentPage = 1;
   loadInventory();
-}, 300);
+};
+
+async function loadCategories() {
+  try {
+    const { products } = await ProductsAPI.list({ limit: 1000 });
+    const categories = [...new Set(products.map(p => p.category).filter(Boolean))].sort();
+    const select = document.getElementById('cat-filter');
+    if (!select) return;
+    const currentVal = select.value;
+    select.innerHTML = '<option value="">All Categories</option>' + 
+      categories.map(c => `<option value="${c}" ${c===currentVal?'selected':''}>${c}</option>`).join('');
+  } catch (err) { console.error('Failed to load categories', err); }
+}
 
 async function loadInventory() {
   localStorage.setItem('gs_inv_page', currentPage);
@@ -118,8 +134,14 @@ async function loadInventory() {
     if (search) params.search = search;
     const { products, pagination } = await ProductsAPI.list(params);
 
+    if (!products.length && currentPage > 1) {
+      currentPage = 1;
+      return loadInventory();
+    }
+
     if (!products.length) {
       tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:3rem;color:var(--outline);">No products found</td></tr>`;
+      document.getElementById('inventory-pagination').style.display = 'none';
       return;
     }
 
@@ -188,5 +210,6 @@ if (params.search) {
   if (searchInput) searchInput.value = decodeURIComponent(params.search);
 }
 
+loadCategories();
 loadInventory();
 </script>
