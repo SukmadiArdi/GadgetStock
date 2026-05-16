@@ -1,60 +1,373 @@
-<!-- pages/auth.html -->
-<div class="fade-in" style="display:flex;align-items:center;justify-content:center;height:calc(100vh - 4rem);margin:-2rem;">
-  <div style="width:100%;max-width:24rem;background:#fff;border-radius:1rem;box-shadow:0 1rem 3rem rgba(0,0,0,0.1);padding:2rem;">
-    
-    <div style="text-align:center;margin-bottom:2rem;">
-      <div style="width:4rem;height:4rem;background:var(--primary-container);color:#fff;border-radius:1rem;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
-        <span class="material-symbols-outlined" style="font-size:2rem;">lock_person</span>
-      </div>
-      <h1 id="auth-title" style="font-size:1.5rem;font-weight:800;color:#1e3a5f;">Staff Login</h1>
-      <p id="auth-subtitle" style="font-size:0.875rem;color:var(--on-surface-variant);margin-top:0.5rem;">Enter your Employee ID to continue</p>
+<!-- pages/auth.html - Premium Login & Register UI -->
+<style>
+#auth-page {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+  margin: -1.5rem;
+  width: calc(100% + 3rem);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+/* ── Left Branding Panel ── */
+#auth-branding {
+  flex: 1;
+  background: linear-gradient(145deg, #001f3f 0%, #0a2d52 40%, #1a3a6b 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 3rem;
+  position: relative;
+  overflow: hidden;
+}
+#auth-branding::before {
+  content: '';
+  position: absolute;
+  top: -8rem; right: -8rem;
+  width: 22rem; height: 22rem;
+  background: radial-gradient(circle, rgba(79,70,229,0.35) 0%, transparent 70%);
+  border-radius: 50%;
+}
+#auth-branding::after {
+  content: '';
+  position: absolute;
+  bottom: -5rem; left: -5rem;
+  width: 18rem; height: 18rem;
+  background: radial-gradient(circle, rgba(124,58,237,0.25) 0%, transparent 70%);
+  border-radius: 50%;
+}
+.branding-logo-mark {
+  width: 4rem; height: 4rem;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  border-radius: 1.125rem;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 2rem;
+  box-shadow: 0 0 2rem rgba(124,58,237,0.5);
+}
+.branding-title {
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+  margin-bottom: 1rem;
+}
+.branding-title span { color: #818cf8; }
+.branding-desc {
+  font-size: 0.9375rem;
+  color: rgba(255,255,255,0.6);
+  line-height: 1.6;
+  max-width: 22rem;
+  margin-bottom: 3rem;
+}
+.branding-features {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  position: relative;
+  z-index: 1;
+}
+.branding-feature {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 0.875rem 1.25rem;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 0.875rem;
+  backdrop-filter: blur(10px);
+  color: rgba(255,255,255,0.85);
+  font-size: 0.875rem;
+  font-weight: 500;
+  max-width: 24rem;
+  transition: background 0.2s;
+}
+.branding-feature:hover { background: rgba(255,255,255,0.1); }
+.branding-feature-icon {
+  width: 2.25rem; height: 2.25rem;
+  border-radius: 0.625rem;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  font-size: 1.125rem;
+}
+
+/* ── Right Form Panel ── */
+#auth-form-panel {
+  width: 26rem;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 3rem 2.5rem;
+  background: #fff;
+  overflow-y: auto;
+}
+.auth-card-inner { width: 100%; max-width: 22rem; }
+
+.auth-form-header { margin-bottom: 2rem; }
+.auth-form-header h1 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #1e3a5f;
+  letter-spacing: -0.03em;
+}
+.auth-form-header p {
+  font-size: 0.875rem;
+  color: var(--on-surface-variant);
+  margin-top: 0.375rem;
+}
+
+/* Input with icon */
+.auth-input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.auth-input-group .auth-input-icon {
+  position: absolute;
+  left: 0.875rem;
+  color: var(--on-surface-variant);
+  font-size: 1.25rem;
+  pointer-events: none;
+  transition: color 0.15s;
+}
+.auth-input-group input {
+  padding-left: 2.75rem !important;
+}
+.auth-input-group:focus-within .auth-input-icon {
+  color: var(--primary-container);
+}
+.auth-input-group .auth-pw-toggle {
+  position: absolute;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--on-surface-variant);
+  display: flex; align-items: center;
+  padding: 0.25rem;
+  border-radius: 0.375rem;
+  transition: color 0.15s;
+}
+.auth-input-group .auth-pw-toggle:hover { color: var(--primary-container); }
+
+/* Submit button */
+.auth-submit-btn {
+  width: 100%;
+  padding: 0.875rem;
+  background: linear-gradient(135deg, #001f3f, #1a3a6b);
+  color: #fff;
+  border: none;
+  border-radius: 0.75rem;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  transition: all 0.2s;
+  box-shadow: 0 4px 16px rgba(0,31,63,0.25);
+  letter-spacing: 0.01em;
+}
+.auth-submit-btn:hover {
+  background: linear-gradient(135deg, #0a2d52, #2a4a7b);
+  box-shadow: 0 8px 24px rgba(0,31,63,0.35);
+  transform: translateY(-1px);
+}
+.auth-submit-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Guest button */
+.auth-guest-btn {
+  width: 100%;
+  padding: 0.875rem;
+  background: linear-gradient(135deg, rgba(124,58,237,0.06), rgba(79,70,229,0.08));
+  color: #5b21b6;
+  border: 1.5px dashed #7c3aed;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  transition: all 0.2s;
+}
+.auth-guest-btn:hover {
+  background: linear-gradient(135deg, rgba(124,58,237,0.12), rgba(79,70,229,0.15));
+  border-color: #4f46e5;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(124,58,237,0.2);
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1.25rem 0;
+}
+.auth-divider-line {
+  flex: 1;
+  height: 1px;
+  background: var(--outline-variant);
+}
+.auth-divider span {
+  font-size: 0.75rem;
+  color: var(--on-surface-variant);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.auth-toggle-link {
+  display: block;
+  width: 100%;
+  text-align: center;
+  margin-top: 1.5rem;
+  font-size: 0.875rem;
+  color: var(--on-surface-variant);
+}
+.auth-toggle-link button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #4f46e5;
+  font-size: 0.875rem;
+  font-weight: 700;
+  padding: 0;
+  transition: color 0.15s;
+}
+.auth-toggle-link button:hover { color: #7c3aed; }
+
+/* ── Responsive ── */
+@media (max-width: 767px) {
+  #auth-page { margin: -0.875rem; width: calc(100% + 1.75rem); flex-direction: column; }
+  #auth-branding { display: none; }
+  #auth-form-panel { width: 100%; padding: 2rem 1.25rem; min-height: 100vh; }
+}
+</style>
+
+<div id="auth-page" class="fade-in">
+
+  <!-- ── Left: Branding ── -->
+  <div id="auth-branding">
+    <div class="branding-logo-mark">
+      <span class="material-symbols-outlined" style="font-size:2rem;color:#fff;">inventory_2</span>
     </div>
-
-    <form id="auth-form" onsubmit="handleAuth(event)" style="display:flex;flex-direction:column;gap:1.25rem;">
-      <div id="name-group" class="form-group" style="display:none;">
-        <label class="form-label">Full Name</label>
-        <input type="text" id="f-fullname" class="form-input" placeholder="Enter Your Full Name" />
-      </div>
-      
-      <div class="form-group">
-        <label class="form-label">Employee ID</label>
-        <input type="text" id="f-empid" class="form-input" placeholder="Enter Your Employee ID" />
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Password</label>
-        <div style="position:relative;display:flex;align-items:center;">
-          <input type="password" id="f-password" class="form-input" placeholder="Enter Your Password" required style="padding-right:2.5rem;width:100%;" />
-          <button type="button" onclick="togglePassword()" style="position:absolute;right:0.5rem;background:none;border:none;color:var(--on-surface-variant);cursor:pointer;display:flex;align-items:center;padding:0.25rem;">
-            <span class="material-symbols-outlined" id="pw-icon" style="font-size:1.25rem;">visibility</span>
-          </button>
+    <h2 class="branding-title">Gadget<span>Stock</span></h2>
+    <p class="branding-desc">Platform manajemen toko gadget yang lengkap — dari kasir POS hingga analitik penjualan, semua dalam satu dashboard.</p>
+    <div class="branding-features">
+      <div class="branding-feature">
+        <div class="branding-feature-icon" style="background:rgba(79,70,229,0.25);">
+          <span class="material-symbols-outlined" style="color:#818cf8;">point_of_sale</span>
         </div>
+        <span>Kasir POS dengan barcode scanner</span>
+      </div>
+      <div class="branding-feature">
+        <div class="branding-feature-icon" style="background:rgba(22,163,74,0.25);">
+          <span class="material-symbols-outlined" style="color:#4ade80;">inventory_2</span>
+        </div>
+        <span>Manajemen inventaris real-time</span>
+      </div>
+      <div class="branding-feature">
+        <div class="branding-feature-icon" style="background:rgba(245,158,11,0.25);">
+          <span class="material-symbols-outlined" style="color:#fbbf24;">analytics</span>
+        </div>
+        <span>Laporan & analitik penjualan</span>
+      </div>
+      <div class="branding-feature">
+        <div class="branding-feature-icon" style="background:rgba(124,58,237,0.25);">
+          <span class="material-symbols-outlined" style="color:#a78bfa;">group</span>
+        </div>
+        <span>Multi-level akses karyawan</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Right: Auth Form ── -->
+  <div id="auth-form-panel">
+    <div class="auth-card-inner">
+
+      <!-- Header -->
+      <div class="auth-form-header">
+        <div style="width:3rem;height:3rem;background:linear-gradient(135deg,#001f3f,#1a3a6b);border-radius:0.875rem;display:flex;align-items:center;justify-content:center;margin-bottom:1.25rem;box-shadow:0 4px 12px rgba(0,31,63,0.25);">
+          <span class="material-symbols-outlined" id="auth-header-icon" style="font-size:1.5rem;color:#fff;">lock_person</span>
+        </div>
+        <h1 id="auth-title">Staff Login</h1>
+        <p id="auth-subtitle">Masukkan Employee ID Anda untuk melanjutkan</p>
       </div>
 
-      <button type="submit" class="btn btn-primary" id="auth-btn" style="width:100%;margin-top:0.5rem;justify-content:center;">
-        <span class="material-symbols-outlined">login</span><span id="auth-btn-text">Sign In</span>
+      <!-- Form -->
+      <form id="auth-form" onsubmit="handleAuth(event)" style="display:flex;flex-direction:column;gap:1rem;">
+
+        <!-- Full Name (register only) -->
+        <div id="name-group" class="form-group" style="display:none;">
+          <label class="form-label">Full Name</label>
+          <div class="auth-input-group">
+            <span class="material-symbols-outlined auth-input-icon">badge</span>
+            <input type="text" id="f-fullname" class="form-input" placeholder="Nama lengkap Anda" />
+          </div>
+        </div>
+
+        <!-- Employee ID -->
+        <div class="form-group">
+          <label class="form-label">Employee ID</label>
+          <div class="auth-input-group">
+            <span class="material-symbols-outlined auth-input-icon">person</span>
+            <input type="text" id="f-empid" class="form-input" placeholder="Contoh: EMP-001" required />
+          </div>
+        </div>
+
+        <!-- Password -->
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <div class="auth-input-group">
+            <span class="material-symbols-outlined auth-input-icon">key</span>
+            <input type="password" id="f-password" class="form-input" placeholder="Masukkan password" required style="padding-right:3rem;" />
+            <button type="button" class="auth-pw-toggle" onclick="togglePassword()">
+              <span class="material-symbols-outlined" id="pw-icon" style="font-size:1.25rem;">visibility</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Submit -->
+        <button type="submit" class="auth-submit-btn" id="auth-btn" style="margin-top:0.5rem;">
+          <span class="material-symbols-outlined" id="auth-btn-icon">login</span>
+          <span id="auth-btn-text">Sign In</span>
+        </button>
+
+      </form>
+
+      <!-- Toggle login/register -->
+      <div class="auth-toggle-link">
+        <span id="auth-toggle-text">Belum punya akun?</span>
+        <button id="toggle-auth-btn" onclick="toggleMode()">Daftar di sini</button>
+      </div>
+
+      <!-- Divider -->
+      <div class="auth-divider">
+        <div class="auth-divider-line"></div>
+        <span>atau coba dulu</span>
+        <div class="auth-divider-line"></div>
+      </div>
+
+      <!-- Guest Button -->
+      <button onclick="enterGuestMode()" class="auth-guest-btn">
+        <span class="material-symbols-outlined" style="font-size:1.25rem;">visibility</span>
+        Masuk sebagai Tamu (Demo Mode)
       </button>
-    </form>
+      <p style="text-align:center;font-size:0.6875rem;color:var(--on-surface-variant);margin-top:0.625rem;line-height:1.5;">
+        Semua fitur aktif — data tidak disimpan ke database
+      </p>
 
-    <div style="text-align:center;margin-top:1.5rem;">
-      <button class="btn btn-ghost btn-sm" id="toggle-auth-btn" onclick="toggleMode()" style="color:var(--primary);">
-        Need an account? Register here
-      </button>
     </div>
-
-    <!-- Divider -->
-    <div style="display:flex;align-items:center;gap:0.75rem;margin:1.5rem 0;">
-      <div style="flex:1;height:1px;background:var(--outline-variant);"></div>
-      <span style="font-size:0.75rem;color:var(--on-surface-variant);font-weight:600;white-space:nowrap;">atau</span>
-      <div style="flex:1;height:1px;background:var(--outline-variant);"></div>
-    </div>
-
-    <!-- Guest Mode Button -->
-    <button onclick="enterGuestMode()" id="guest-btn" style="width:100%;display:flex;align-items:center;justify-content:center;gap:0.625rem;padding:0.75rem 1rem;border-radius:0.625rem;border:1.5px dashed var(--outline);background:var(--surface-container-low);color:var(--on-surface-variant);font-size:0.875rem;font-weight:600;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--primary)';this.style.background='var(--primary-container-low,#eef2ff)';" onmouseout="this.style.borderColor='var(--outline)';this.style.color='var(--on-surface-variant)';this.style.background='var(--surface-container-low)';">
-      <span class="material-symbols-outlined" style="font-size:1.25rem;">visibility</span>
-      Continue as Guest (Demo Mode)
-    </button>
-    <p style="text-align:center;font-size:0.6875rem;color:var(--on-surface-variant);margin-top:0.5rem;line-height:1.4;">Semua fitur aktif — data tidak disimpan ke database</p>
   </div>
 </div>
 
@@ -79,44 +392,47 @@ window.togglePassword = function() {
 
 window.toggleMode = function() {
   isLogin = !isLogin;
-  document.getElementById('auth-title').textContent = isLogin ? 'Staff Login' : 'Staff Registration';
-  document.getElementById('auth-subtitle').textContent = isLogin ? 'Enter your Employee ID to continue' : 'Register your new Employee ID';
-  document.getElementById('auth-btn-text').textContent = isLogin ? 'Sign In' : 'Register';
-  document.getElementById('auth-btn').querySelector('.material-symbols-outlined').textContent = isLogin ? 'login' : 'person_add';
-  document.getElementById('toggle-auth-btn').textContent = isLogin ? 'Need an account? Register here' : 'Already have an account? Sign In';
-  document.getElementById('name-group').style.display = isLogin ? 'none' : 'block';
+  document.getElementById('auth-title').textContent         = isLogin ? 'Staff Login'        : 'Buat Akun Baru';
+  document.getElementById('auth-subtitle').textContent      = isLogin ? 'Masukkan Employee ID Anda untuk melanjutkan' : 'Daftarkan Employee ID baru Anda';
+  document.getElementById('auth-btn-icon').textContent      = isLogin ? 'login'               : 'person_add';
+  document.getElementById('auth-btn-text').textContent      = isLogin ? 'Sign In'             : 'Daftar';
+  document.getElementById('auth-header-icon').textContent   = isLogin ? 'lock_person'         : 'person_add';
+  document.getElementById('auth-toggle-text').textContent   = isLogin ? 'Belum punya akun?'   : 'Sudah punya akun?';
+  document.getElementById('toggle-auth-btn').textContent    = isLogin ? 'Daftar di sini'      : 'Masuk di sini';
+  document.getElementById('name-group').style.display       = isLogin ? 'none'                : 'block';
   if (!isLogin) document.getElementById('f-fullname').setAttribute('required', 'true');
   else document.getElementById('f-fullname').removeAttribute('required');
 };
 
 window.handleAuth = async function(e) {
   e.preventDefault();
-  const btn = document.getElementById('auth-btn');
-  btn.disabled = true;
-  btn.querySelector('.material-symbols-outlined').textContent = 'hourglass_empty';
+  const btn     = document.getElementById('auth-btn');
+  const btnIcon = document.getElementById('auth-btn-icon');
+  btn.disabled  = true;
+  btnIcon.textContent = 'hourglass_empty';
 
   try {
-    const empId = document.getElementById('f-empid').value.trim();
+    const empId    = document.getElementById('f-empid').value.trim();
     const password = document.getElementById('f-password').value;
-    
+
     if (isLogin) {
       const res = await AuthAPI.login(empId, password);
       State.setUser(res.user, res.profile);
-      showToast('Login successful!', 'success');
+      showToast('Login berhasil!', 'success');
       setTimeout(() => navigate('/dashboard'), 500);
     } else {
       const name = document.getElementById('f-fullname').value.trim();
-      const res = await AuthAPI.signup(empId, password, name);
+      const res  = await AuthAPI.signup(empId, password, name);
       showToast(res.message, 'success');
-      toggleMode(); // switch back to login
-      document.getElementById('f-empid').value = empId;
+      toggleMode();
+      document.getElementById('f-empid').value    = empId;
       document.getElementById('f-password').value = '';
     }
   } catch (err) {
     showToast('Error: ' + err.message, 'error');
   } finally {
     btn.disabled = false;
-    btn.querySelector('.material-symbols-outlined').textContent = isLogin ? 'login' : 'person_add';
+    btnIcon.textContent = isLogin ? 'login' : 'person_add';
   }
 };
 
