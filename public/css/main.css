@@ -765,7 +765,7 @@ body.is-guest #page-content {
     grid-template-columns: 1fr 1fr !important;
     gap: 0.5rem !important;
   }
-  .inv-sidebar { display: none !important; }
+
 
   /* ── Product Detail ─────────────── */
   #product-form {

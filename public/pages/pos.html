@@ -221,6 +221,14 @@
   #product-grid.grid-cols-1 .skeleton-card { height: 6.5rem !important; }
   #product-grid.grid-cols-2 .skeleton-card { height: 11rem !important; }
   #product-grid.grid-cols-3 .skeleton-card { height: 8rem !important; }
+
+  /* Handle guest banner offset */
+  body.is-guest #pos-mobile-tabs {
+    top: calc(var(--header-h) + 5rem) !important;
+  }
+  body.is-guest #pos-layout {
+    padding-top: calc(3.5rem + 5rem) !important;
+  }
 }
 .product-img-box { height: 9rem; } /* Default desktop height */
 </style>
