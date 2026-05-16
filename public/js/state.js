@@ -16,6 +16,11 @@ const State = {
     }
   })(),
 
+  // Guest Mode flag
+  get isGuest() {
+    return this.currentUser?.role === '_guest';
+  },
+
   // Global App Settings
   settings: JSON.parse(localStorage.getItem('gs_settings')) || {
     terminal: 'Terminal 01',
@@ -102,8 +107,10 @@ const State = {
     this.settings = { ...this.settings, ...newSettings };
     localStorage.setItem('gs_settings', JSON.stringify(this.settings));
     this._emit('settings');
-    // Also emit user to update terminal UI in topbar
-    this._emit('user'); 
+    this._emit('user');
+
+    // Skip server sync in guest mode
+    if (this.isGuest) return;
 
     // Sync with backend
     try {
@@ -167,9 +174,24 @@ const State = {
     this._emit('user');
   },
 
+  setGuestMode() {
+    this.currentUser = {
+      id: 'guest',
+      name: 'Guest User',
+      role: '_guest',
+      employee_id: 'GUEST',
+      initials: 'GU'
+    };
+    // Don't persist guest to localStorage
+    this._emit('user');
+  },
+
   logout() {
     this.currentUser = null;
+    this.cart = [];
     localStorage.removeItem('gs_user');
+    localStorage.removeItem('gs_cart');
+    this._emit('cart');
     this._emit('user');
   },
 
@@ -188,7 +210,10 @@ const State = {
 
   _emit(event) {
     if (event === 'cart') {
-      localStorage.setItem('gs_cart', JSON.stringify(this.cart));
+      // Don't persist cart in guest mode
+      if (!this.isGuest) {
+        localStorage.setItem('gs_cart', JSON.stringify(this.cart));
+      }
     }
     (this._listeners[event] || []).forEach(cb => cb(this));
   }

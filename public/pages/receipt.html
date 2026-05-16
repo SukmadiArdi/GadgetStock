@@ -151,7 +151,7 @@ async function init() {
 
   if (!txn) { navigate('/dashboard'); return; }
 
-  const txnNum = `Transaction #${txn.txn_number}`;
+  const txnNum = `Transaction #${txn.txn_number || txn.transaction_number}`;
   document.getElementById('receipt-txn-num').textContent = txnNum;
   document.getElementById('card-txn-num').textContent = txnNum;
   document.getElementById('receipt-datetime').textContent = formatDate(txn.created_at, 'datetime');
@@ -162,7 +162,8 @@ async function init() {
     document.getElementById('receipt-change').textContent = formatRupiah(txn.change_amount);
   }
 
-  const items = txn.transaction_items || [];
+  // Support both real API (transaction_items) and guest mock (items)
+  const items = txn.transaction_items || txn.items || [];
   document.getElementById('receipt-items').innerHTML = items.map(item => `
     <div style="display:flex;justify-content:space-between;padding:0.5rem 0;font-size:0.875rem;">
       <div style="flex:1;min-width:0;padding-right:1rem;">
@@ -172,6 +173,9 @@ async function init() {
       <span style="font-weight:700;" class="text-rupiah">${formatRupiah(item.subtotal)}</span>
     </div>
   `).join('');
+
+  // Support txn.total (real) and txn.total_amount (guest mock)
+  const totalAmt = txn.total ?? txn.total_amount;
 
   // Calculate the actual tax % from the transaction data
   const taxRatePct = txn.subtotal > 0
@@ -193,7 +197,7 @@ async function init() {
         <span>Tax (${taxRatePct}%)</span><span>${formatRupiah(txn.tax_amount)}</span>
       </div>
       <div class="print-line-solid" style="display:flex;justify-content:space-between;font-size:1.125rem;font-weight:800;color:#1e3a5f;margin-top:0.5rem;padding-top:0.5rem;border-top:1px solid var(--outline-variant);">
-        <span>TOTAL</span><span>${formatRupiah(txn.total)}</span>
+        <span>TOTAL</span><span>${formatRupiah(totalAmt)}</span>
       </div>
     </div>
   `;

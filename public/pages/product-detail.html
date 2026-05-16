@@ -189,6 +189,14 @@ window.saveProduct = async function(e) {
       stock_min: parseInt(document.getElementById('f-stock-min').value) || 5,
       image_url: document.getElementById('f-image').value || null
     };
+
+    if (State.isGuest) {
+      // Guest mode: simulate success without database write
+      showToast(`[Demo] Product "${body.name}" ${productId ? 'updated' : 'added'} — tidak disimpan ke database`, 'info', 3000);
+      setTimeout(() => navigate('/inventory'), 1200);
+      return;
+    }
+
     if (productId) await ProductsAPI.update(productId, body);
     else await ProductsAPI.create(body);
     showToast(`Product ${productId ? 'updated' : 'created'} successfully!`, 'success');
@@ -200,6 +208,11 @@ window.saveProduct = async function(e) {
 };
 
 window.deleteProduct = function() {
+  if (State.isGuest) {
+    showToast('[Demo] Hapus produk tidak tersimpan ke database', 'info', 3000);
+    setTimeout(() => navigate('/inventory'), 1200);
+    return;
+  }
   showConfirm('This will deactivate the product. Continue?', async () => {
     try {
       await ProductsAPI.delete(productId);

@@ -257,13 +257,43 @@ window.confirmPayment = async function() {
   btn.innerHTML = `<span class="material-symbols-outlined" style="animation:spin 1s linear infinite">refresh</span> Processing...`;
 
   try {
-    const txn = await TransactionsAPI.create({
-      items: State.cart.map(i => ({ product_id: i.product_id, product_name: i.name, product_sku: i.sku, quantity: i.qty, unit_price: i.price })),
-      customer_name: State.currentUser.customerName || 'Walk-in Customer',
-      payment_method: selectedMethod,
-      cash_received: selectedMethod === 'cash' ? (parseInt(document.getElementById('cash-input').value.replace(/\./g, ''))||0) : null,
-      terminal: State.settings.terminal
-    });
+    let txn;
+
+    if (State.isGuest) {
+      // Guest mode: simulate a transaction without hitting the database
+      const cashReceived = selectedMethod === 'cash'
+        ? (parseInt(document.getElementById('cash-input').value.replace(/\./g, '')) || 0)
+        : null;
+      txn = {
+        id: 'demo-' + Date.now(),
+        transaction_number: 'DEMO-' + Math.floor(1000 + Math.random() * 9000),
+        created_at: new Date().toISOString(),
+        payment_method: selectedMethod,
+        cash_received: cashReceived,
+        change_amount: cashReceived ? Math.max(0, cashReceived - totals.total) : 0,
+        subtotal: totals.subtotal,
+        tax_amount: totals.tax,
+        total_amount: totals.total,
+        customer_name: 'Walk-in Customer',
+        terminal: State.settings.terminal || 'Terminal 01',
+        status: 'completed',
+        items: State.cart.map(i => ({
+          product_name: i.name,
+          product_sku: i.sku,
+          quantity: i.qty,
+          unit_price: i.price,
+          subtotal: i.price * i.qty
+        }))
+      };
+    } else {
+      txn = await TransactionsAPI.create({
+        items: State.cart.map(i => ({ product_id: i.product_id, product_name: i.name, product_sku: i.sku, quantity: i.qty, unit_price: i.price })),
+        customer_name: State.currentUser.customerName || 'Walk-in Customer',
+        payment_method: selectedMethod,
+        cash_received: selectedMethod === 'cash' ? (parseInt(document.getElementById('cash-input').value.replace(/\./g, ''))||0) : null,
+        terminal: State.settings.terminal
+      });
+    }
 
     State.setCurrentTxn(txn);
     State.clearCart();

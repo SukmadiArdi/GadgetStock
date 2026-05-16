@@ -41,6 +41,20 @@
         Need an account? Register here
       </button>
     </div>
+
+    <!-- Divider -->
+    <div style="display:flex;align-items:center;gap:0.75rem;margin:1.5rem 0;">
+      <div style="flex:1;height:1px;background:var(--outline-variant);"></div>
+      <span style="font-size:0.75rem;color:var(--on-surface-variant);font-weight:600;white-space:nowrap;">atau</span>
+      <div style="flex:1;height:1px;background:var(--outline-variant);"></div>
+    </div>
+
+    <!-- Guest Mode Button -->
+    <button onclick="enterGuestMode()" id="guest-btn" style="width:100%;display:flex;align-items:center;justify-content:center;gap:0.625rem;padding:0.75rem 1rem;border-radius:0.625rem;border:1.5px dashed var(--outline);background:var(--surface-container-low);color:var(--on-surface-variant);font-size:0.875rem;font-weight:600;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--primary)';this.style.background='var(--primary-container-low,#eef2ff)';" onmouseout="this.style.borderColor='var(--outline)';this.style.color='var(--on-surface-variant)';this.style.background='var(--surface-container-low)';">
+      <span class="material-symbols-outlined" style="font-size:1.25rem;">visibility</span>
+      Continue as Guest (Demo Mode)
+    </button>
+    <p style="text-align:center;font-size:0.6875rem;color:var(--on-surface-variant);margin-top:0.5rem;line-height:1.4;">Semua fitur aktif — data tidak disimpan ke database</p>
   </div>
 </div>
 
@@ -104,5 +118,10 @@ window.handleAuth = async function(e) {
     btn.disabled = false;
     btn.querySelector('.material-symbols-outlined').textContent = isLogin ? 'login' : 'person_add';
   }
+};
+
+window.enterGuestMode = function() {
+  State.setGuestMode();
+  navigate('/dashboard');
 };
 </script>

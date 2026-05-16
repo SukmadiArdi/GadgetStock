@@ -1,8 +1,15 @@
 // public/js/api.js - All API calls to backend (Vercel Serverless Functions)
+import State from '/js/state.js';
 
 const BASE = '/api';
 
 async function request(path, options = {}) {
+  // Intercept write operations in Guest Mode
+  const method = (options.method || 'GET').toUpperCase();
+  if (State.isGuest && ['POST','PUT','DELETE','PATCH'].includes(method)) {
+    throw new Error('Mode Demo: Data tidak disimpan ke database. Silakan login untuk menggunakan fitur ini.');
+  }
+
   try {
     const res = await fetch(`${BASE}${path}`, {
       headers: { 'Content-Type': 'application/json', ...options.headers },

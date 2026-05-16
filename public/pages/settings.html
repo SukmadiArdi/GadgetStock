@@ -195,8 +195,8 @@ function loadSettings() {
   document.getElementById('set-pos-size').value = prefs.posCardSize || 180;
   document.getElementById('set-pos-limit').value = prefs.posItemsPerPage || 20;
 
-  // Manager Only Section
-  if (user.role === 'manager' || user.role === 'admin') {
+  // Manager Only Section — also show for guest (demo mode shows all features)
+  if (user.role === 'manager' || user.role === 'admin' || State.isGuest) {
     document.getElementById('manager-settings-section').style.display = 'block';
     document.getElementById('set-store-name').value = prefs.storeName || 'GadgetStock';
     // taxRate in state is stored as decimal (e.g. 0.11), display as percent (11)
@@ -319,4 +319,22 @@ window.saveStorePrefs = async function() {
 };
 
 loadSettings();
+
+// Guest mode: lock all settings
+if (State.isGuest) {
+  // Show guest notice banner
+  const banner = document.createElement('div');
+  banner.style.cssText = 'display:flex;align-items:center;gap:0.75rem;padding:0.875rem 1.25rem;background:#ede9fe;border:1px solid #7c3aed;border-radius:0.75rem;color:#5b21b6;font-size:0.875rem;font-weight:600;margin-bottom:1.5rem;';
+  banner.innerHTML = `<span class="material-symbols-outlined" style="font-size:1.25rem;color:#7c3aed;">info</span><span>Anda dalam <strong>Mode Demo</strong>. Pengaturan bisa dilihat tapi tidak dapat disimpan. <a href="#/login" onclick="navigate('/login')" style="color:#7c3aed;text-decoration:underline;">Login</a> untuk mengedit.</span>`;
+  const settingsGrid = document.getElementById('settings-grid');
+  if (settingsGrid && settingsGrid.parentNode) {
+    settingsGrid.parentNode.insertBefore(banner, settingsGrid);
+  }
+  // Disable all form controls
+  document.querySelectorAll('#settings-grid input, #settings-grid select, #settings-grid textarea, #settings-grid button').forEach(el => {
+    el.disabled = true;
+    el.style.opacity = '0.6';
+    el.style.cursor = 'not-allowed';
+  });
+}
 </script>
