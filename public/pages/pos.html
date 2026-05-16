@@ -1,6 +1,6 @@
 <!-- pages/pos.html - POS Cashier Interface -->
 <!-- Mobile Tab Bar (only visible on mobile) -->
-<div id="pos-mobile-tabs" style="display:none;background:#fff;border-bottom:1px solid var(--outline-variant);flex-direction:row;flex-shrink:0;z-index:90;position:fixed;top:var(--header-h);left:0;right:0;width:100%;">
+<div id="pos-mobile-tabs" style="display:none;background:#fff;border-bottom:1px solid var(--outline-variant);flex-direction:row;flex-shrink:0;z-index:90;position:fixed;top:var(--pos-tab-top, var(--header-h));left:0;right:0;width:100%;">
   <button id="tab-products" onclick="switchPosTab('products')" style="flex:1;padding:0.875rem;border:none;border-right:1px solid var(--outline-variant);background:var(--primary-container);color:#fff;font-size:0.75rem;font-weight:700;display:flex;align-items:center;justify-content:center;gap:0.5rem;cursor:pointer;">
     <span class="material-symbols-outlined" style="font-size:1.125rem;">grid_view</span>Products
   </button>
@@ -143,7 +143,7 @@
     height: auto !important;
     overflow: visible !important;
     margin: -0.875rem !important;
-    padding-top: 3.5rem !important; /* Space for fixed tabs */
+    padding-top: var(--pos-layout-top, 3.5rem) !important; /* Dynamic: accounts for tab + optional guest banner */
     min-height: calc(100vh - var(--header-h) - 7rem) !important;
   }
   #pos-products-panel {
@@ -221,14 +221,6 @@
   #product-grid.grid-cols-1 .skeleton-card { height: 6.5rem !important; }
   #product-grid.grid-cols-2 .skeleton-card { height: 11rem !important; }
   #product-grid.grid-cols-3 .skeleton-card { height: 8rem !important; }
-
-  /* Handle guest banner offset */
-  body.is-guest #pos-mobile-tabs {
-    top: calc(var(--header-h) + 5rem) !important;
-  }
-  body.is-guest #pos-layout {
-    padding-top: calc(3.5rem + 5rem) !important;
-  }
 }
 .product-img-box { height: 9rem; } /* Default desktop height */
 </style>
@@ -535,6 +527,32 @@ async function init() {
   if (window.innerWidth < 768) {
     switchGrid(parseInt(savedGrid));
   }
+
+  // Dynamically position the tab bar flush under the guest banner (no gap)
+  function updatePosTabPosition() {
+    if (window.innerWidth >= 768) return; // only on mobile
+    const headerH = document.getElementById('topbar')?.offsetHeight || 56;
+    const banner  = document.getElementById('guest-banner');
+    const bannerH = (banner && banner.style.display !== 'none') ? banner.offsetHeight : 0;
+    const tabTop  = headerH + bannerH;
+    const tabBar  = document.getElementById('pos-mobile-tabs');
+    const tabH    = tabBar ? tabBar.offsetHeight : 44;
+    // Set CSS custom properties on the pos-layout element
+    const layout = document.getElementById('pos-layout');
+    if (layout) {
+      layout.style.setProperty('--pos-tab-top', `${tabTop}px`);
+      layout.style.setProperty('--pos-layout-top', `${tabH}px`);
+    }
+    // Also set on the tab element itself via inline style
+    if (tabBar) tabBar.style.top = `${tabTop}px`;
+  }
+
+  updatePosTabPosition();
+  window.addEventListener('resize', updatePosTabPosition);
+  // Re-run when guest banner may appear/disappear
+  const bannerObserver = new MutationObserver(updatePosTabPosition);
+  const banner = document.getElementById('guest-banner');
+  if (banner) bannerObserver.observe(banner, { attributes: true, attributeFilter: ['style'] });
 
   State.on('cart', renderCart);
 }
