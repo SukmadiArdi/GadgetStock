@@ -222,6 +222,9 @@
     const u = State.currentUser;
     if (!u) {
       document.body.classList.add('is-auth-page');
+      document.body.classList.remove('is-guest');
+      const guestBanner = document.getElementById('guest-banner');
+      if (guestBanner) guestBanner.style.display = 'none';
       if (window.location.hash !== '#/login') navigate('/login');
       return;
     }
