@@ -130,11 +130,14 @@
 
 <!-- Guest Mode Banner -->
 <div id="guest-banner" style="display:none;">
-  <div style="display:flex;align-items:center;gap:0.625rem;">
-    <span class="material-symbols-outlined" style="font-size:1.1rem;">visibility</span>
-    <span>Anda dalam <strong>Mode Demo (Guest)</strong> — Semua fitur aktif, tetapi data <strong>tidak disimpan</strong> ke database.</span>
+  <div style="display:flex;align-items:center;gap:1rem;flex:1;">
+    <div class="guest-badge">Demo Mode</div>
+    <div style="display:flex;align-items:center;gap:0.5rem;opacity:0.95;">
+      <span class="material-symbols-outlined" style="font-size:1.25rem;">info</span>
+      <span>Semua fitur aktif — Data tidak akan disimpan ke database.</span>
+    </div>
   </div>
-  <button onclick="navigate('/login')" style="background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:0.5rem;padding:0.375rem 0.875rem;font-size:0.75rem;font-weight:700;cursor:pointer;white-space:nowrap;transition:all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.25)';this.style.borderColor='rgba(255,255,255,0.5)';" onmouseout="this.style.background='rgba(255,255,255,0.15)';this.style.borderColor='rgba(255,255,255,0.3)';">
+  <button onclick="State.logout(); navigate('/login')" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);border-radius:0.5rem;padding:0.5rem 1rem;font-size:0.75rem;font-weight:700;cursor:pointer;white-space:nowrap;transition:all 0.2s;backdrop-filter:blur(4px);" onmouseover="this.style.background='rgba(255,255,255,0.2)';this.style.borderColor='rgba(255,255,255,0.4)';" onmouseout="this.style.background='rgba(255,255,255,0.1)';this.style.borderColor='rgba(255,255,255,0.2)';">
     Sign In
   </button>
 </div>
