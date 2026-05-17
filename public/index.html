@@ -27,6 +27,13 @@
     body.is-auth-page #main-content { margin-left: 0 !important; padding: 0 !important; width: 100vw; height: 100vh; background: var(--surface-container-low); display: flex; }
     body.is-auth-page #page-content { max-width: 100%; margin: 0; padding: 0 !important; display: flex; width: 100%; height: 100%; align-items: center; justify-content: center; }
   </style>
+
+  <!-- Init Theme to prevent flash -->
+  <script>
+    if (localStorage.getItem('gs_theme') === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+  </script>
 </head>
 <body>
 
@@ -88,6 +95,9 @@
       </div>
 
       <div class="topbar-actions">
+        <button class="topbar-icon-btn" title="Toggle Theme" onclick="toggleTheme()">
+          <span class="material-symbols-outlined" id="theme-icon">dark_mode</span>
+        </button>
         <button class="topbar-icon-btn" id="notif-btn" title="Notifications" onclick="navigate('/low-stock')" style="position:relative;">
           <span class="material-symbols-outlined">notifications</span>
           <span class="notif-dot" id="notif-dot" style="display:none;"></span>
@@ -191,6 +201,25 @@
   window.navigate = navigate;
   window.State = State;
   window.showToast = showToast;
+
+  // Theme logic
+  window.toggleTheme = function() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    if (isDark) {
+      document.documentElement.removeAttribute('data-theme');
+      localStorage.setItem('gs_theme', 'light');
+      document.getElementById('theme-icon').textContent = 'dark_mode';
+    } else {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      localStorage.setItem('gs_theme', 'dark');
+      document.getElementById('theme-icon').textContent = 'light_mode';
+    }
+  };
+  // Ensure icon matches current theme on load
+  if (document.documentElement.getAttribute('data-theme') === 'dark') {
+    const icon = document.getElementById('theme-icon');
+    if (icon) icon.textContent = 'light_mode';
+  }
 
   // Mobile responsive: hide sidebar on small screens when resizing
   function handleResize() {

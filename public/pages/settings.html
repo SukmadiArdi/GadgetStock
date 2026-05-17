@@ -103,25 +103,15 @@
               <option value="Back Office">Back Office</option>
             </select>
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
-            <div class="form-group">
-              <label class="form-label">Product Card Layout</label>
-              <select id="set-pos-size" class="form-input form-select" onchange="saveAppPrefs()">
-                <option value="140">Small (Grid Focus)</option>
-                <option value="180">Medium (Balanced)</option>
-                <option value="240">Large (Image Focus)</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Items Per Page</label>
-              <div style="display:flex;align-items:center;background:var(--surface-container-low);border-radius:0.5rem;overflow:hidden;height:2.5rem;border:1px solid rgba(196,198,207,0.5);">
-                <button onclick="adjustPosLimit(-5)" style="border:none;background:none;padding:0 0.75rem;cursor:pointer;color:var(--on-surface);"><span class="material-symbols-outlined" style="font-size:1.125rem;">remove</span></button>
-                <input type="number" id="set-pos-limit" class="form-input" min="5" max="100" style="border:none;text-align:center;padding:0;background:transparent;font-weight:700;" readonly />
-                <button onclick="adjustPosLimit(5)" style="border:none;background:none;padding:0 0.75rem;cursor:pointer;color:var(--on-surface);"><span class="material-symbols-outlined" style="font-size:1.125rem;">add</span></button>
-              </div>
+          <div class="form-group">
+            <label class="form-label">Items Per Page</label>
+            <div style="display:flex;align-items:center;background:var(--surface-container-low);border-radius:0.5rem;overflow:hidden;height:2.5rem;border:1px solid rgba(196,198,207,0.5);">
+              <button onclick="adjustPosLimit(-5)" style="border:none;background:none;padding:0 0.75rem;cursor:pointer;color:var(--on-surface);"><span class="material-symbols-outlined" style="font-size:1.125rem;">remove</span></button>
+              <input type="number" id="set-pos-limit" class="form-input" min="5" max="100" style="border:none;text-align:center;padding:0;background:transparent;font-weight:700;" readonly />
+              <button onclick="adjustPosLimit(5)" style="border:none;background:none;padding:0 0.75rem;cursor:pointer;color:var(--on-surface);"><span class="material-symbols-outlined" style="font-size:1.125rem;">add</span></button>
             </div>
           </div>
-          <p style="font-size:0.6875rem;color:var(--on-surface-variant);margin-top:0.25rem;">Choose a layout style and set the number of products displayed per page.</p>
+          <p style="font-size:0.6875rem;color:var(--on-surface-variant);margin-top:0.25rem;">Set the number of products displayed per page in POS and Inventory.</p>
         </div>
       </div>
 
@@ -192,7 +182,6 @@ function loadSettings() {
   // Preferences
   const prefs = State.settings || {};
   document.getElementById('set-terminal').value = prefs.terminal || 'Terminal 01';
-  document.getElementById('set-pos-size').value = prefs.posCardSize || 180;
   document.getElementById('set-pos-limit').value = prefs.posItemsPerPage || 20;
 
   // Manager Only Section — also show for guest (demo mode shows all features)
@@ -283,12 +272,10 @@ window.adjustPosLimit = function(delta) {
 
 window.saveAppPrefs = async function() {
   const term = document.getElementById('set-terminal').value;
-  const size = parseInt(document.getElementById('set-pos-size').value) || 180;
   const limit = parseInt(document.getElementById('set-pos-limit').value) || 20;
   
   await State.updateSettings({ 
     terminal: term,
-    posCardSize: size,
     posItemsPerPage: limit
   });
   showToast('Preferences saved', 'success');
