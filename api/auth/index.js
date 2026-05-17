@@ -54,12 +54,17 @@ module.exports = async (req, res) => {
     else if (action === 'signup') {
       if (!full_name) return res.status(400).json({ error: 'Full name is required for signup' });
       
-      // Verify Employee ID format (GS-EMP-xxx or GS-SPV-xxx)
-      if (!empId.startsWith('GS-EMP-') && !empId.startsWith('GS-SPV-')) {
-        return res.status(400).json({ error: 'Invalid Employee ID. Must start with GS-EMP- or GS-SPV-' });
+      // Verify Employee ID format (GS-EMP-xxx, GS-SPV-xxx, or GS-ADM-xxx)
+      if (!empId.startsWith('GS-EMP-') && !empId.startsWith('GS-SPV-') && !empId.startsWith('GS-ADM-')) {
+        return res.status(400).json({ error: 'Invalid Employee ID. Must start with GS-EMP-, GS-SPV-, or GS-ADM-' });
       }
 
-      const role = empId.startsWith('GS-SPV-') ? 'manager' : 'cashier';
+      let role = 'cashier';
+      if (empId.startsWith('GS-SPV-')) {
+        role = 'manager';
+      } else if (empId.startsWith('GS-ADM-')) {
+        role = 'admin';
+      }
 
       // Supabase signup
       const { data, error } = await supabase.auth.signUp({
