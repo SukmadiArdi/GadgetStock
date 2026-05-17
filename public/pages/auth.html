@@ -4,8 +4,7 @@
   display: flex;
   width: 100%;
   min-height: 100vh;
-  margin: -1.5rem;
-  width: calc(100% + 3rem);
+  margin: 0;
   background: var(--surface);
   overflow: hidden;
 }
@@ -17,10 +16,11 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: flex-start;
+  align-items: center;
   padding: 3rem;
   position: relative;
   overflow: hidden;
+  text-align: center;
 }
 #auth-branding::before {
   content: '';
@@ -60,7 +60,7 @@
   color: rgba(255,255,255,0.6);
   line-height: 1.6;
   max-width: 22rem;
-  margin-bottom: 3rem;
+  margin: 0 auto 3rem auto;
 }
 .branding-features {
   display: flex;
@@ -81,7 +81,8 @@
   color: rgba(255,255,255,0.85);
   font-size: 0.875rem;
   font-weight: 500;
-  max-width: 24rem;
+  width: 24rem;
+  max-width: 100%;
   transition: background 0.2s;
 }
 .branding-feature:hover { background: rgba(255,255,255,0.1); }
