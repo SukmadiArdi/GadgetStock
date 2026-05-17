@@ -51,39 +51,106 @@
         </select>
       </div>
 
-      <!-- Cash Form -->
-      <div id="cash-form" class="card" style="padding:1.5rem;margin-bottom:1.5rem;">
-        <div class="form-group" style="margin-bottom:1.25rem;">
-          <label class="form-label">Cash Received</label>
-          <div style="position:relative;">
-            <span style="position:absolute;left:1rem;top:50%;transform:translateY(-50%);font-weight:700;color:var(--on-surface-variant);">Rp</span>
-            <input type="text" id="cash-input" class="form-input" placeholder="0" style="padding-left:3rem;font-size:1.25rem;font-weight:700;height:3.5rem;" oninput="formatCurrencyInput(this); calcChange()" />
-          </div>
-        </div>
+      <!-- Payment Form Container (prevents Layout Shifts by keeping height stable) -->
+      <div style="height: 19rem; margin-bottom: 1.5rem; position: relative;">
         
-        <!-- Quick Cash Buttons -->
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;margin-bottom:1.5rem;">
-          <button class="btn btn-ghost btn-sm" onclick="setCash('exact')" style="font-size:0.625rem;padding:0.5rem 0;">Pas</button>
-          <button class="btn btn-ghost btn-sm" onclick="setCash(50000)" style="font-size:0.625rem;padding:0.5rem 0;">50k</button>
-          <button class="btn btn-ghost btn-sm" onclick="setCash(100000)" style="font-size:0.625rem;padding:0.5rem 0;">100k</button>
-          <button class="btn btn-ghost btn-sm" onclick="setCash(200000)" style="font-size:0.625rem;padding:0.5rem 0;">200k</button>
+        <!-- Cash Form -->
+        <div id="cash-form" class="card" style="padding:1.5rem; height:100%; box-sizing:border-box; display:flex; flex-direction:column; justify-content:space-between;">
+          <div class="form-group">
+            <label class="form-label">Cash Received</label>
+            <div style="position:relative;">
+              <span style="position:absolute;left:1rem;top:50%;transform:translateY(-50%);font-weight:700;color:var(--on-surface-variant);">Rp</span>
+              <input type="text" id="cash-input" class="form-input" placeholder="0" style="padding-left:3rem;font-size:1.25rem;font-weight:700;height:3.25rem;" oninput="formatCurrencyInput(this); calcChange()" />
+            </div>
+          </div>
+          
+          <!-- Quick Cash Buttons -->
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;">
+            <button class="btn btn-ghost btn-sm" onclick="setCash('exact')" style="font-size:0.625rem;padding:0.5rem 0;">Pas</button>
+            <button class="btn btn-ghost btn-sm" onclick="setCash(50000)" style="font-size:0.625rem;padding:0.5rem 0;">50k</button>
+            <button class="btn btn-ghost btn-sm" onclick="setCash(100000)" style="font-size:0.625rem;padding:0.5rem 0;">100k</button>
+            <button class="btn btn-ghost btn-sm" onclick="setCash(200000)" style="font-size:0.625rem;padding:0.5rem 0;">200k</button>
+          </div>
+
+          <div style="background:var(--surface-container-lowest);border-radius:0.75rem;padding:0.875rem 1rem;display:flex;justify-content:space-between;align-items:center;border:1px solid var(--outline-variant);">
+            <div>
+              <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;color:var(--on-surface-variant);margin-bottom:0.125rem;">Change</p>
+              <span id="change-amount" style="font-size:1.375rem;font-weight:800;color:var(--primary-container);" class="text-rupiah">Rp 0</span>
+            </div>
+            <div style="background:var(--primary-container);color:#fff;width:2.25rem;height:2.25rem;border-radius:50%;display:flex;align-items:center;justify-content:center;">
+              <span class="material-symbols-outlined" style="font-size:1.25rem;">payments</span>
+            </div>
+          </div>
         </div>
 
-        <div style="background:var(--surface-container-lowest);border-radius:0.75rem;padding:1rem;display:flex;justify-content:space-between;align-items:center;border:1px solid var(--outline-variant);">
-          <div>
-            <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;color:var(--on-surface-variant);margin-bottom:0.25rem;">Change</p>
-            <span id="change-amount" style="font-size:1.5rem;font-weight:800;color:var(--primary-container);" class="text-rupiah">Rp 0</span>
-          </div>
-          <div style="background:var(--primary-container);color:#fff;width:2.5rem;height:2.5rem;border-radius:50%;display:flex;align-items:center;justify-content:center;">
-            <span class="material-symbols-outlined">payments</span>
-          </div>
-        </div>
-      </div>
+        <!-- Non-cash notice & mockup -->
+        <div id="noncash-form" class="card" style="padding:1.5rem; height:100%; box-sizing:border-box; display:none; flex-direction:column; justify-content:center; align-items:center; position:relative; overflow:hidden;">
+          
+          <!-- QRIS Sub-container -->
+          <div id="qris-payment-visual" style="display:none;flex-direction:column;align-items:center;gap:0.75rem;">
+            <div style="position:relative;width:6.5rem;height:6.5rem;background:#fff;padding:0.5rem;border-radius:0.75rem;box-shadow:0 4px 12px rgba(0,0,0,0.08);border:1px solid var(--outline-variant);overflow:hidden;box-sizing:border-box;">
+              <!-- Simple SVG mockup of QR code -->
+              <svg viewBox="0 0 100 100" style="width:100%;height:100%;fill:#001f3f;">
+                <rect x="0" y="0" width="25" height="25" rx="2"/>
+                <rect x="3" y="3" width="19" height="19" fill="#fff" rx="1"/>
+                <rect x="6" y="6" width="13" height="13" rx="1"/>
+                
+                <rect x="75" y="0" width="25" height="25" rx="2"/>
+                <rect x="78" y="3" width="19" height="19" fill="#fff" rx="1"/>
+                <rect x="81" y="6" width="13" height="13" rx="1"/>
 
-      <!-- Non-cash notice -->
-      <div id="noncash-form" class="card" style="padding:1.25rem;margin-bottom:1.5rem;text-align:center;display:none;">
-        <span class="material-symbols-outlined" style="font-size:2.5rem;color:var(--on-surface-variant);display:block;margin-bottom:0.5rem;">qr_code_scanner</span>
-        <p style="font-size:0.875rem;font-weight:600;color:var(--on-surface-variant);" id="noncash-label">Please present QR / card for payment</p>
+                <rect x="0" y="75" width="25" height="25" rx="2"/>
+                <rect x="3" y="78" width="19" height="19" fill="#fff" rx="1"/>
+                <rect x="6" y="81" width="13" height="13" rx="1"/>
+
+                <rect x="35" y="5" width="10" height="10"/>
+                <rect x="55" y="5" width="10" height="5"/>
+                <rect x="35" y="20" width="5" height="10"/>
+                <rect x="45" y="25" width="10" height="10"/>
+                <rect x="60" y="18" width="8" height="8"/>
+                <rect x="5" y="35" width="10" height="10"/>
+                <rect x="20" y="45" width="10" height="5"/>
+                <rect x="5" y="55" width="5" height="10"/>
+                <rect x="15" y="60" width="10" height="10"/>
+                <rect x="35" y="45" width="15" height="15"/>
+                <rect x="55" y="40" width="10" height="15"/>
+                <rect x="70" y="35" width="10" height="10"/>
+                <rect x="85" y="40" width="10" height="10"/>
+                <rect x="80" y="55" width="15" height="10"/>
+                <rect x="35" y="65" width="10" height="5"/>
+                <rect x="50" y="70" width="15" height="15"/>
+                <rect x="70" y="75" width="15" height="5"/>
+                <rect x="70" y="85" width="5" height="10"/>
+                <rect x="85" y="80" width="10" height="15"/>
+              </svg>
+              <!-- Scan line -->
+              <div class="scan-line"></div>
+            </div>
+            <p style="font-size:0.8125rem;font-weight:700;color:#1e3a5f;margin-top:0.25rem;text-align:center;">Scan QRIS Untuk Pembayaran</p>
+            <span style="font-size:0.6875rem;color:var(--on-surface-variant);max-width:16rem;line-height:1.4;text-align:center;" id="noncash-label">Tampilkan barcode QRIS ini ke pelanggan untuk dipindai melalui e-wallet.</span>
+          </div>
+
+          <!-- Card Sub-container (Debit/Credit) -->
+          <div id="card-payment-visual" style="display:none;flex-direction:column;align-items:center;gap:0.75rem;">
+            <div class="mock-card-glow">
+              <div class="mock-card">
+                <div style="display:flex;justify-content:space-between;align-items:center;width:100%;margin-bottom:0.25rem;">
+                  <span class="material-symbols-outlined" style="font-size:1.25rem;color:rgba(255,255,255,0.85);font-variation-settings:'FILL' 1;">wifi_tethering</span>
+                  <span style="font-size:0.5625rem;font-weight:900;letter-spacing:0.1em;color:rgba(255,255,255,0.7);text-transform:uppercase;" id="card-type-label">CARD</span>
+                </div>
+                <div style="width:1.25rem;height:1rem;background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:3px;box-shadow:0 1px 3px rgba(0,0,0,0.2);"></div>
+                <div style="font-size:0.875rem;font-weight:600;letter-spacing:0.125em;color:#fff;margin-bottom:0.25rem;font-family:monospace;">•••• •••• •••• 8888</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
+                  <span style="font-size:0.5rem;color:rgba(255,255,255,0.6);text-transform:uppercase;font-family:sans-serif;">GadgetStock Terminal</span>
+                  <span style="font-size:0.5rem;color:rgba(255,255,255,0.6);font-family:monospace;">12/29</span>
+                </div>
+              </div>
+            </div>
+            <p style="font-size:0.8125rem;font-weight:700;color:#1e3a5f;margin-top:0.25rem;text-align:center;" id="card-instruction-title">Silakan Gesek atau Tempel Kartu</p>
+            <span style="font-size:0.6875rem;color:var(--on-surface-variant);max-width:16rem;line-height:1.4;text-align:center;">Gunakan mesin EDC eksternal untuk memproses pembayaran kartu.</span>
+          </div>
+
+        </div>
       </div>
 
       <!-- Confirm Button -->
@@ -104,6 +171,57 @@
 
 .mobile-only { display: none !important; }
 .desktop-only { display: grid !important; }
+
+/* ── QRIS Scan Line Animation ── */
+.scan-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: #22c55e;
+  box-shadow: 0 0 10px #22c55e, 0 0 4px #22c55e;
+  animation: scan-anim 2s infinite ease-in-out;
+}
+@keyframes scan-anim {
+  0% { top: 0%; }
+  50% { top: 100%; }
+  100% { top: 0%; }
+}
+
+/* ── Card Mockup Animation and Layout ── */
+.mock-card-glow {
+  background: linear-gradient(135deg, rgba(79,70,229,0.15), rgba(124,58,237,0.15));
+  padding: 5px;
+  border-radius: 0.9rem;
+  animation: pulse-glow 3s infinite ease-in-out;
+}
+@keyframes pulse-glow {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 rgba(124,58,237,0); }
+  50% { transform: scale(1.02); box-shadow: 0 0 16px rgba(124,58,237,0.25); }
+}
+
+.mock-card {
+  width: 12rem;
+  height: 7rem;
+  background: linear-gradient(135deg, #001f3f 0%, #0a2d52 60%, #1a3a6b 100%);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+  position: relative;
+  overflow: hidden;
+}
+.mock-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 80% 20%, rgba(255,255,255,0.06) 0%, transparent 60%);
+  pointer-events: none;
+}
 
 @media (max-width: 768px) {
   .desktop-only { display: none !important; }
@@ -208,11 +326,33 @@ window.selectMethod = function(el, isInitial = false) {
   
   const cashForm = document.getElementById('cash-form');
   const ncForm = document.getElementById('noncash-form');
-  if (selectedMethod === 'cash') { cashForm.style.display='block'; ncForm.style.display='none'; }
-  else {
-    cashForm.style.display='none'; ncForm.style.display='block';
-    const labels = { qris:'Present QR code for payment', debit:'Swipe or tap debit card', credit:'Swipe or tap credit card' };
-    document.getElementById('noncash-label').textContent = labels[selectedMethod] || '';
+  const qrisVisual = document.getElementById('qris-payment-visual');
+  const cardVisual = document.getElementById('card-payment-visual');
+  
+  if (selectedMethod === 'cash') {
+    cashForm.style.display = 'flex';
+    ncForm.style.display = 'none';
+  } else {
+    cashForm.style.display = 'none';
+    ncForm.style.display = 'flex';
+    
+    if (selectedMethod === 'qris') {
+      qrisVisual.style.display = 'flex';
+      cardVisual.style.display = 'none';
+      document.getElementById('noncash-label').textContent = 'Scan QRIS via e-wallet (OVO, GoPay, Dana, LinkAja, BCA, dll) untuk menyelesaikan pembayaran.';
+    } else {
+      qrisVisual.style.display = 'none';
+      cardVisual.style.display = 'flex';
+      const cardTypeLabel = document.getElementById('card-type-label');
+      const cardTitle = document.getElementById('card-instruction-title');
+      if (selectedMethod === 'debit') {
+        cardTypeLabel.textContent = 'DEBIT CARD';
+        cardTitle.textContent = 'Silakan Tempel atau Gesek Kartu Debit';
+      } else {
+        cardTypeLabel.textContent = 'CREDIT CARD';
+        cardTitle.textContent = 'Silakan Tempel atau Gesek Kartu Kredit';
+      }
+    }
   }
 };
 
