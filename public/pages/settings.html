@@ -244,6 +244,9 @@ window.updateProfile = function() {
 };
 
 window.updatePassword = async function() {
+  if (State.isGuest) {
+    return showToast('Password tidak dapat diubah pada Mode Demo', 'error');
+  }
   const p1 = document.getElementById('set-pass1').value;
   const p2 = document.getElementById('set-pass2').value;
   if (!p1 || p1.length < 6) return showToast('Password minimal 6 karakter', 'error');
@@ -320,18 +323,18 @@ window.saveStorePrefs = async function() {
 
 loadSettings();
 
-// Guest mode: lock all settings
+// Guest mode: show banner and lock only security/password controls
 if (State.isGuest) {
   // Show guest notice banner
   const banner = document.createElement('div');
   banner.style.cssText = 'display:flex;align-items:center;gap:0.75rem;padding:0.875rem 1.25rem;background:#ede9fe;border:1px solid #7c3aed;border-radius:0.75rem;color:#5b21b6;font-size:0.875rem;font-weight:600;margin-bottom:1.5rem;';
-  banner.innerHTML = `<span class="material-symbols-outlined" style="font-size:1.25rem;color:#7c3aed;">info</span><span>Anda dalam <strong>Mode Demo</strong>. Pengaturan bisa dilihat tapi tidak dapat disimpan. <a href="#/login" onclick="navigate('/login')" style="color:#7c3aed;text-decoration:underline;">Login</a> untuk mengedit.</span>`;
+  banner.innerHTML = `<span class="material-symbols-outlined" style="font-size:1.25rem;color:#7c3aed;">info</span><span>Anda dalam <strong>Mode Demo</strong>. Pengaturan dapat diubah dan disimpan secara lokal (di browser), tetapi tidak disimpan ke database.</span>`;
   const settingsGrid = document.getElementById('settings-grid');
   if (settingsGrid && settingsGrid.parentNode) {
     settingsGrid.parentNode.insertBefore(banner, settingsGrid);
   }
-  // Disable all form controls
-  document.querySelectorAll('#settings-grid input, #settings-grid select, #settings-grid textarea, #settings-grid button').forEach(el => {
+  // Disable only password controls since there is no DB user account for Guest
+  document.querySelectorAll('#set-pass1, #set-pass2, button[onclick="updatePassword()"]').forEach(el => {
     el.disabled = true;
     el.style.opacity = '0.6';
     el.style.cursor = 'not-allowed';
