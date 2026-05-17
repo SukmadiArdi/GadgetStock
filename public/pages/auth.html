@@ -1,11 +1,35 @@
 <!-- pages/auth.html - Premium Login & Register UI -->
 <style>
 #auth-page {
+  /* Force Light Mode variables specifically for the auth page */
+  --primary-container:       #001f3f;
+  --primary:                 #000613;
+  --on-primary:              #ffffff;
+  --on-primary-container:    #6f88ad;
+  --background:              #f8f9fa;
+  --on-background:           #191c1d;
+  --surface:                 #f8f9fa;
+  --on-surface:              #191c1d;
+  --surface-variant:         #e1e3e4;
+  --on-surface-variant:      #43474e;
+  --surface-container-lowest: #ffffff;
+  --surface-container-low:   #f3f4f5;
+  --surface-container:       #edeeef;
+  --surface-container-high:  #e7e8e9;
+  --surface-container-highest: #e1e3e4;
+  --error:                   #ba1a1a;
+  --on-error:                #ffffff;
+  --error-container:         #ffdad6;
+  --on-error-container:      #93000a;
+  --outline:                 #74777f;
+  --outline-variant:         #c4c6cf;
+  
   display: flex;
   width: 100%;
   min-height: 100vh;
   margin: 0;
   background: var(--surface);
+  color: var(--on-surface);
   overflow: hidden;
 }
 
