@@ -72,82 +72,97 @@
             <button class="btn btn-ghost btn-sm" onclick="setCash(200000)" style="font-size:0.625rem;padding:0.5rem 0;">200k</button>
           </div>
 
-          <div style="background:var(--surface-container-lowest);border-radius:0.75rem;padding:0.875rem 1rem;display:flex;justify-content:space-between;align-items:center;border:1px solid var(--outline-variant);">
+          <div style="background:var(--surface-container-lowest);border-radius:0.75rem;padding:0.875rem 1rem;display:flex;justify-content:space-between;align-items:center;border:1px solid var(--outline-variant);height:4.25rem;box-sizing:border-box;">
             <div>
               <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;color:var(--on-surface-variant);margin-bottom:0.125rem;">Change</p>
               <span id="change-amount" style="font-size:1.375rem;font-weight:800;color:var(--primary-container);" class="text-rupiah">Rp 0</span>
             </div>
-            <div style="background:var(--primary-container);color:#fff;width:2.25rem;height:2.25rem;border-radius:50%;display:flex;align-items:center;justify-content:center;">
+            <div style="background:var(--primary-container);color:#fff;width:2.25rem;height:2.25rem;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
               <span class="material-symbols-outlined" style="font-size:1.25rem;">payments</span>
             </div>
           </div>
         </div>
 
-        <!-- Non-cash notice & mockup -->
-        <div id="noncash-form" class="card" style="padding:1.5rem; height:100%; box-sizing:border-box; display:none; flex-direction:column; justify-content:center; align-items:center; position:relative; overflow:hidden;">
+        <!-- Non-cash notice & mockup (Structured IDENTICALLY to Cash Form) -->
+        <div id="noncash-form" class="card" style="padding:1.5rem; height:100%; box-sizing:border-box; display:none; flex-direction:column; justify-content:space-between;">
           
-          <!-- QRIS Sub-container -->
-          <div id="qris-payment-visual" style="display:none;flex-direction:column;align-items:center;gap:0.75rem;">
-            <div style="position:relative;width:6.5rem;height:6.5rem;background:#fff;padding:0.5rem;border-radius:0.75rem;box-shadow:0 4px 12px rgba(0,0,0,0.08);border:1px solid var(--outline-variant);overflow:hidden;box-sizing:border-box;">
-              <!-- Simple SVG mockup of QR code -->
-              <svg viewBox="0 0 100 100" style="width:100%;height:100%;fill:#001f3f;">
-                <rect x="0" y="0" width="25" height="25" rx="2"/>
-                <rect x="3" y="3" width="19" height="19" fill="#fff" rx="1"/>
-                <rect x="6" y="6" width="13" height="13" rx="1"/>
-                
-                <rect x="75" y="0" width="25" height="25" rx="2"/>
-                <rect x="78" y="3" width="19" height="19" fill="#fff" rx="1"/>
-                <rect x="81" y="6" width="13" height="13" rx="1"/>
-
-                <rect x="0" y="75" width="25" height="25" rx="2"/>
-                <rect x="3" y="78" width="19" height="19" fill="#fff" rx="1"/>
-                <rect x="6" y="81" width="13" height="13" rx="1"/>
-
-                <rect x="35" y="5" width="10" height="10"/>
-                <rect x="55" y="5" width="10" height="5"/>
-                <rect x="35" y="20" width="5" height="10"/>
-                <rect x="45" y="25" width="10" height="10"/>
-                <rect x="60" y="18" width="8" height="8"/>
-                <rect x="5" y="35" width="10" height="10"/>
-                <rect x="20" y="45" width="10" height="5"/>
-                <rect x="5" y="55" width="5" height="10"/>
-                <rect x="15" y="60" width="10" height="10"/>
-                <rect x="35" y="45" width="15" height="15"/>
-                <rect x="55" y="40" width="10" height="15"/>
-                <rect x="70" y="35" width="10" height="10"/>
-                <rect x="85" y="40" width="10" height="10"/>
-                <rect x="80" y="55" width="15" height="10"/>
-                <rect x="35" y="65" width="10" height="5"/>
-                <rect x="50" y="70" width="15" height="15"/>
-                <rect x="70" y="75" width="15" height="5"/>
-                <rect x="70" y="85" width="5" height="10"/>
-                <rect x="85" y="80" width="10" height="15"/>
-              </svg>
-              <!-- Scan line -->
-              <div class="scan-line"></div>
+          <!-- Row 1: Amount to Pay (Identical height & padding to Cash's Cash Received) -->
+          <div class="form-group">
+            <label class="form-label" id="noncash-amount-label">Amount to Pay</label>
+            <div style="position:relative;">
+              <span style="position:absolute;left:1rem;top:50%;transform:translateY(-50%);font-weight:700;color:var(--on-surface-variant);">Rp</span>
+              <input type="text" id="noncash-amount-display" class="form-input" disabled style="padding-left:3rem;font-size:1.25rem;font-weight:700;height:3.25rem;background:var(--surface-container-low);color:var(--primary-container);" value="—" />
             </div>
-            <p style="font-size:0.8125rem;font-weight:700;color:#1e3a5f;margin-top:0.25rem;text-align:center;">Scan QRIS Untuk Pembayaran</p>
-            <span style="font-size:0.6875rem;color:var(--on-surface-variant);max-width:16rem;line-height:1.4;text-align:center;" id="noncash-label">Tampilkan barcode QRIS ini ke pelanggan untuk dipindai melalui e-wallet.</span>
+          </div>
+          
+          <!-- Row 2: Status Indicator Pill (Identical height to Cash's Quick Buttons) -->
+          <div style="height:2rem; display:flex; align-items:center; background:rgba(79,70,229,0.08); border-radius:0.5rem; padding:0 0.75rem; border:1px dashed rgba(79,70,229,0.3); gap:0.5rem; box-sizing:border-box;">
+            <span class="material-symbols-outlined" style="font-size:1.125rem; color:#4f46e5; animation: pulse 1.5s infinite;" id="noncash-status-icon">sensors</span>
+            <span id="noncash-status-text" style="font-size:0.75rem; font-weight:700; color:#4f46e5;">EDC Terminal Connected</span>
           </div>
 
-          <!-- Card Sub-container (Debit/Credit) -->
-          <div id="card-payment-visual" style="display:none;flex-direction:column;align-items:center;gap:0.75rem;">
-            <div class="mock-card-glow">
-              <div class="mock-card">
-                <div style="display:flex;justify-content:space-between;align-items:center;width:100%;margin-bottom:0.25rem;">
-                  <span class="material-symbols-outlined" style="font-size:1.25rem;color:rgba(255,255,255,0.85);font-variation-settings:'FILL' 1;">wifi_tethering</span>
-                  <span style="font-size:0.5625rem;font-weight:900;letter-spacing:0.1em;color:rgba(255,255,255,0.7);text-transform:uppercase;" id="card-type-label">CARD</span>
-                </div>
-                <div style="width:1.25rem;height:1rem;background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:3px;box-shadow:0 1px 3px rgba(0,0,0,0.2);"></div>
-                <div style="font-size:0.875rem;font-weight:600;letter-spacing:0.125em;color:#fff;margin-bottom:0.25rem;font-family:monospace;">•••• •••• •••• 8888</div>
-                <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
-                  <span style="font-size:0.5rem;color:rgba(255,255,255,0.6);text-transform:uppercase;font-family:sans-serif;">GadgetStock Terminal</span>
-                  <span style="font-size:0.5rem;color:rgba(255,255,255,0.6);font-family:monospace;">12/29</span>
+          <!-- Row 3: Action & Details Box (Identical styling, position & height to Cash's Change Box!) -->
+          <div style="background:var(--surface-container-lowest);border-radius:0.75rem;padding:0.75rem 1rem;display:flex;justify-content:space-between;align-items:center;border:1px solid var(--outline-variant);height:4.25rem;box-sizing:border-box;">
+            <div style="display:flex;align-items:center;gap:0.75rem;flex:1;min-width:0;">
+              
+              <!-- Miniature Animated QRIS SVG (Left Item) -->
+              <div id="mini-qris-container" style="display:none;position:relative;width:2.75rem;height:2.75rem;background:#fff;padding:0.25rem;border-radius:0.375rem;box-shadow:0 2px 6px rgba(0,0,0,0.06);border:1px solid var(--outline-variant);overflow:hidden;box-sizing:border-box;flex-shrink:0;">
+                <svg viewBox="0 0 100 100" style="width:100%;height:100%;fill:#001f3f;">
+                  <rect x="0" y="0" width="25" height="25" rx="1"/>
+                  <rect x="3" y="3" width="19" height="19" fill="#fff" rx="0.5"/>
+                  <rect x="6" y="6" width="13" height="13" rx="0.5"/>
+                  
+                  <rect x="75" y="0" width="25" height="25" rx="1"/>
+                  <rect x="78" y="3" width="19" height="19" fill="#fff" rx="0.5"/>
+                  <rect x="81" y="6" width="13" height="13" rx="0.5"/>
+
+                  <rect x="0" y="75" width="25" height="25" rx="1"/>
+                  <rect x="3" y="78" width="19" height="19" fill="#fff" rx="0.5"/>
+                  <rect x="6" y="81" width="13" height="13" rx="0.5"/>
+
+                  <rect x="35" y="5" width="10" height="10"/>
+                  <rect x="55" y="5" width="10" height="5"/>
+                  <rect x="35" y="20" width="5" height="10"/>
+                  <rect x="45" y="25" width="10" height="10"/>
+                  <rect x="60" y="18" width="8" height="8"/>
+                  <rect x="5" y="35" width="10" height="10"/>
+                  <rect x="20" y="45" width="10" height="5"/>
+                  <rect x="5" y="55" width="5" height="10"/>
+                  <rect x="15" y="60" width="10" height="10"/>
+                  <rect x="35" y="45" width="15" height="15"/>
+                  <rect x="55" y="40" width="10" height="15"/>
+                  <rect x="70" y="35" width="10" height="10"/>
+                </svg>
+                <!-- Scan line animation -->
+                <div class="scan-line" style="height:2px;box-shadow:0 0 6px #22c55e;"></div>
+              </div>
+
+              <!-- Miniature Card Mockup (Left Item) -->
+              <div id="mini-card-container" style="display:none;align-items:center;justify-content:center;flex-shrink:0;">
+                <div class="mock-card-glow" style="padding:2px;border-radius:0.5rem;">
+                  <div class="mock-card" style="width:4.25rem;height:2.5rem;padding:0.25rem;border-radius:0.375rem;box-shadow:0 4px 10px rgba(0,0,0,0.15);justify-content:space-between;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;width:100%;margin-bottom:0.125rem;height:0.625rem;line-height:1;">
+                      <span class="material-symbols-outlined" style="font-size:0.625rem;color:rgba(255,255,255,0.85);font-variation-settings:'FILL' 1;">wifi_tethering</span>
+                      <span style="font-size:0.3125rem;font-weight:900;color:rgba(255,255,255,0.7);text-transform:uppercase;">CARD</span>
+                    </div>
+                    <div style="width:0.5rem;height:0.375rem;background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:1px;margin-bottom:0.125rem;"></div>
+                    <div style="font-size:0.375rem;font-weight:600;letter-spacing:0.05em;color:#fff;font-family:monospace;line-height:1;">•••• 8888</div>
+                  </div>
                 </div>
               </div>
+
+              <!-- Payment Method Action Details (Middle Text) -->
+              <div style="flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;">
+                <p style="font-size:0.75rem;font-weight:800;color:#1e3a5f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0 0 0.125rem 0;line-height:1.2;" id="noncash-detail-title">QRIS Dynamic QR</p>
+                <p style="font-size:0.625rem;color:var(--on-surface-variant);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0;line-height:1.2;" id="noncash-detail-desc">Tampilkan QRIS ke pelanggan</p>
+              </div>
+
             </div>
-            <p style="font-size:0.8125rem;font-weight:700;color:#1e3a5f;margin-top:0.25rem;text-align:center;" id="card-instruction-title">Silakan Gesek atau Tempel Kartu</p>
-            <span style="font-size:0.6875rem;color:var(--on-surface-variant);max-width:16rem;line-height:1.4;text-align:center;">Gunakan mesin EDC eksternal untuk memproses pembayaran kartu.</span>
+
+            <!-- Right Icon (Identical structure to Cash's Payments circle icon) -->
+            <div style="background:var(--primary-container);color:#fff;width:2.25rem;height:2.25rem;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <span class="material-symbols-outlined" style="font-size:1.25rem;" id="noncash-icon-right">qr_code_scanner</span>
+            </div>
           </div>
 
         </div>
@@ -253,6 +268,11 @@ function updateTotals() {
   document.getElementById('co-subtotal').textContent = formatRupiah(totals.subtotal);
   document.getElementById('co-tax').textContent = formatRupiah(totals.tax);
   document.getElementById('co-total').textContent = formatRupiah(totals.total);
+  
+  const ncAmount = document.getElementById('noncash-amount-display');
+  if (ncAmount) {
+    ncAmount.value = totals.total.toLocaleString('id-ID');
+  }
 }
 
 function init() {
@@ -326,8 +346,6 @@ window.selectMethod = function(el, isInitial = false) {
   
   const cashForm = document.getElementById('cash-form');
   const ncForm = document.getElementById('noncash-form');
-  const qrisVisual = document.getElementById('qris-payment-visual');
-  const cardVisual = document.getElementById('card-payment-visual');
   
   if (selectedMethod === 'cash') {
     cashForm.style.display = 'flex';
@@ -336,22 +354,48 @@ window.selectMethod = function(el, isInitial = false) {
     cashForm.style.display = 'none';
     ncForm.style.display = 'flex';
     
+    const miniQris = document.getElementById('mini-qris-container');
+    const miniCard = document.getElementById('mini-card-container');
+    const detailTitle = document.getElementById('noncash-detail-title');
+    const detailDesc = document.getElementById('noncash-detail-desc');
+    const rightIcon = document.getElementById('noncash-icon-right');
+    const statusIcon = document.getElementById('noncash-status-icon');
+    const statusText = document.getElementById('noncash-status-text');
+    const amountLabel = document.getElementById('noncash-amount-label');
+    
     if (selectedMethod === 'qris') {
-      qrisVisual.style.display = 'flex';
-      cardVisual.style.display = 'none';
-      document.getElementById('noncash-label').textContent = 'Scan QRIS via e-wallet (OVO, GoPay, Dana, LinkAja, BCA, dll) untuk menyelesaikan pembayaran.';
-    } else {
-      qrisVisual.style.display = 'none';
-      cardVisual.style.display = 'flex';
-      const cardTypeLabel = document.getElementById('card-type-label');
-      const cardTitle = document.getElementById('card-instruction-title');
-      if (selectedMethod === 'debit') {
-        cardTypeLabel.textContent = 'DEBIT CARD';
-        cardTitle.textContent = 'Silakan Tempel atau Gesek Kartu Debit';
-      } else {
-        cardTypeLabel.textContent = 'CREDIT CARD';
-        cardTitle.textContent = 'Silakan Tempel atau Gesek Kartu Kredit';
+      if (amountLabel) amountLabel.textContent = 'Amount to Pay (QRIS)';
+      if (statusIcon) {
+        statusIcon.textContent = 'qr_code_scanner';
+        statusIcon.style.animation = 'pulse 1.5s infinite';
       }
+      if (statusText) statusText.textContent = 'QRIS Dynamic QR Code Active';
+      
+      if (miniQris) miniQris.style.display = 'block';
+      if (miniCard) miniCard.style.display = 'none';
+      if (detailTitle) detailTitle.textContent = 'QRIS Dynamic QR';
+      if (detailDesc) detailDesc.textContent = 'Tampilkan barcode QRIS ke pelanggan';
+      if (rightIcon) rightIcon.textContent = 'qr_code_scanner';
+    } else {
+      const isDebit = selectedMethod === 'debit';
+      if (amountLabel) amountLabel.textContent = isDebit ? 'Amount to Pay (Debit)' : 'Amount to Pay (Credit)';
+      if (statusIcon) {
+        statusIcon.textContent = 'sensors';
+        statusIcon.style.animation = 'pulse 1.5s infinite';
+      }
+      if (statusText) statusText.textContent = 'EDC Terminal Connected';
+      
+      if (miniQris) miniQris.style.display = 'none';
+      if (miniCard) miniCard.style.display = 'block';
+      
+      const cardTypeLabel = document.querySelector('#mini-card-container span[style*="font-weight:900"]');
+      if (cardTypeLabel) {
+        cardTypeLabel.textContent = isDebit ? 'DEBIT' : 'CREDIT';
+      }
+      
+      if (detailTitle) detailTitle.textContent = isDebit ? 'Debit Card Payment' : 'Credit Card Payment';
+      if (detailDesc) detailDesc.textContent = 'Gesek atau tempel kartu pada mesin EDC';
+      if (rightIcon) rightIcon.textContent = isDebit ? 'credit_card' : 'credit_score';
     }
   }
 };
