@@ -84,10 +84,7 @@
     <!-- Top Bar -->
     <header id="topbar">
       <div style="display:flex;align-items:center;gap:0.75rem;flex:1;">
-        <!-- Mobile menu toggle -->
-        <button class="topbar-icon-btn" id="mobile-menu-btn" style="display:none;" onclick="document.getElementById('sidebar').classList.toggle('open')">
-          <span class="material-symbols-outlined">menu</span>
-        </button>
+        <!-- Top left area (intentionally left clean since navigation is handled by bottom bar on mobile) -->
       </div>
 
       <div class="topbar-actions">
@@ -142,7 +139,7 @@
   </button>
 </div>
 
-<!-- ── Bottom Nav (Mobile) ───────────────────────────────── -->
+  <!-- ── Bottom Nav (Mobile) ───────────────────────────────── -->
 <nav id="bottom-nav">
   <a class="bottom-nav-item active" data-nav="Dashboard" onclick="navigate('/dashboard')">
     <span class="material-symbols-outlined">dashboard</span>
@@ -159,7 +156,7 @@
     <span class="material-symbols-outlined">inventory_2</span>
     <span>Stock</span>
   </a>
-  <a class="bottom-nav-item" onclick="document.getElementById('sidebar').classList.toggle('open')">
+  <a class="bottom-nav-item" id="bottom-more-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">
     <span class="material-symbols-outlined">menu</span>
     <span>More</span>
   </a>
@@ -195,25 +192,29 @@
   window.State = State;
   window.showToast = showToast;
 
-  // Mobile responsive: show menu button, hide sidebar on small screens
+  // Mobile responsive: hide sidebar on small screens when resizing
   function handleResize() {
-    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
     const isMobile = window.innerWidth < 768;
-    
-    if (mobileMenuBtn) mobileMenuBtn.style.display = isMobile ? 'flex' : 'none';
-    
     // Close sidebar overlay if resizing back to desktop
     if (!isMobile) document.getElementById('sidebar')?.classList.remove('open');
   }
   window.addEventListener('resize', handleResize);
   handleResize();
 
-  // Close sidebar when clicking outside on mobile
+  // Close sidebar when clicking outside on mobile or after a navigation click
   document.addEventListener('click', (e) => {
     const sidebar = document.getElementById('sidebar');
-    const menuBtn = document.getElementById('mobile-menu-btn');
+    const bottomMoreBtn = document.getElementById('bottom-more-btn');
+    
     if (window.innerWidth < 768 && sidebar?.classList.contains('open')) {
-      if (!sidebar.contains(e.target) && !menuBtn?.contains(e.target)) {
+      // Auto-close if a navigation link inside sidebar is clicked
+      if (e.target.closest('#sidebar .nav-item, #sidebar .nav-new-sale')) {
+        sidebar.classList.remove('open');
+        return;
+      }
+      
+      // Auto-close if clicked outside sidebar and not on the bottom toggle button
+      if (!sidebar.contains(e.target) && !bottomMoreBtn?.contains(e.target)) {
         sidebar.classList.remove('open');
       }
     }
