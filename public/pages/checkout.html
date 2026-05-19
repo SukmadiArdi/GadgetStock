@@ -7,7 +7,7 @@
       <span class="material-symbols-outlined">arrow_back</span>
     </button>
     <div>
-      <h1 style="font-size:1.5rem;font-weight:800;color:#1e3a5f;">Checkout</h1>
+      <h1 class="page-title" style="font-size:1.5rem;">Checkout</h1>
       <p style="font-size:0.75rem;color:var(--on-surface-variant);">Complete the transaction</p>
     </div>
   </div>
@@ -99,29 +99,7 @@
   </div>
 </div>
 
-<style>
-.pay-option{display:flex;flex-direction:column;align-items:center;gap:0.5rem;padding:1.25rem;border:2px solid var(--outline-variant);border-radius:0.75rem;cursor:pointer;transition:all 0.15s;font-size:0.8125rem;font-weight:600;color:var(--on-surface-variant);}
-.pay-option:hover{border-color:var(--primary-container);color:#1e3a5f;}
-.pay-option.selected{border-color:var(--primary-container);background:rgba(0,31,63,0.05);color:#1e3a5f;}
-.pay-option .material-symbols-outlined{font-size:1.75rem;}
 
-.mobile-only { display: none !important; }
-.desktop-only { display: grid !important; }
-
-@media (max-width: 768px) {
-  .desktop-only { display: none !important; }
-  .mobile-only { display: block !important; }
-  #checkout-grid {
-    grid-template-columns: 1fr !important;
-    overflow-y: auto !important;
-    gap: 1.5rem !important;
-    padding-bottom: 2rem;
-  }
-  #order-summary {
-    max-height: 250px;
-  }
-}
-</style>
 
 <script type="module">
 import State from '/js/state.js';

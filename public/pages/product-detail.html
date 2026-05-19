@@ -9,7 +9,7 @@
   </div>
 
   <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;">
-    <h1 id="page-title" style="font-size:1.75rem;font-weight:800;color:#1e3a5f;">Add Product</h1>
+    <h1 id="page-title" class="page-title" style="font-size:1.75rem;">Add Product</h1>
     <button id="delete-btn" class="btn btn-danger btn-sm" style="display:none;" onclick="deleteProduct()">
       <span class="material-symbols-outlined">delete</span>Delete
     </button>
@@ -107,9 +107,7 @@
   </form>
 </div>
 
-<style>
-  .breadcrumb-link:hover { text-decoration: underline; }
-</style>
+
 
 <script type="module">
 import { ProductsAPI } from '/js/api.js';

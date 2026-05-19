@@ -1,5 +1,5 @@
 <!-- pages/receipt.html - Success/Receipt Screen -->
-<div class="fade-in receipt-container" style="max-width:28rem;margin:0 auto;padding:1rem;">
+<div class="fade-in receipt-container">
 
   <!-- Success Icon (Only for new sales) -->
   <div id="success-header" class="no-print" style="text-align:center;margin-bottom:2rem;">
@@ -81,49 +81,7 @@
   </div>
 </div>
 
-<style>
-@media print {
-  body { visibility: hidden; background: #fff !important; }
-  .receipt-container, .receipt-container * { visibility: visible; }
-  .receipt-container { 
-    position: fixed !important; 
-    left: 0 !important; 
-    top: 0 !important; 
-    width: 100% !important; 
-    height: auto !important; 
-    background: #fff !important; 
-    padding: 0 !important;
-    display: block !important;
-    margin: 0 !important;
-    max-width: none !important;
-  }
-  .card { 
-    box-shadow: none !important; 
-    border: 1px solid #000 !important; 
-    margin: 0 auto !important; 
-    width: 100% !important; 
-    max-width: none !important; 
-    position: static !important;
-    overflow: visible !important;
-  }
-  /* Remove shadows but let browser handle colors based on checkbox */
-  .card div, .card p, .card h2, .card span { 
-    box-shadow: none !important; 
-  }
-  .receipt-header { 
-    background: none !important; 
-    color: #000 !important;
-    border-bottom: 2px solid #000 !important; 
-  }
-  .receipt-header h2, .receipt-header p { 
-    color: #000 !important; 
-    opacity: 1 !important; 
-  }
-  .print-line-dashed { border-top-color: #000 !important; border-top-width: 1px !important; border-top-style: dashed !important; }
-  .print-line-solid { border-top-color: #000 !important; }
-  .no-print { display: none !important; }
-}
-</style>
+
 
 <script type="module">
 import State from '/js/state.js';

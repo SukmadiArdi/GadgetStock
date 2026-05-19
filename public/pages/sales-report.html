@@ -1,21 +1,11 @@
 <!-- pages/sales-report.html -->
-<style>
-  .report-container { display: flex; flex-direction: column; gap: 0; height: auto; overflow: visible; }
-  .report-top-section { flex-shrink: 0; margin-bottom: 0.5rem; }
-  .report-table-card { margin-top: 1.5rem; display: flex; flex-direction: column; overflow: hidden; min-height: 400px; }
-  
-  @media (min-width: 768px) {
-    .report-container { height: calc(100vh - var(--header-h) - 3rem); overflow: hidden; }
-    .report-top-section { overflow-y: auto; padding-right: 0.5rem; }
-    .report-table-card { flex: 1; min-height: 0; }
-  }
-</style>
+
 
 <div class="fade-in report-container">
-  <div class="report-header-row analytics-header-row" style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:1.5rem;flex-shrink:0;">
+  <div class="page-header-row report-header-row analytics-header-row">
     <div>
-      <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.15em;font-weight:700;color:var(--on-surface-variant);">Reports</p>
-      <h1 style="font-size:1.875rem;font-weight:800;color:#1e3a5f;">Daily Sales Report</h1>
+      <p class="page-eyebrow">Reports</p>
+      <h1 class="page-title">Daily Sales Report</h1>
     </div>
     <div style="display:flex;gap:0.75rem;align-items:center;">
       <input type="date" id="report-date" class="form-input" style="width:11rem;height:2.5rem;margin:0;" onchange="loadReport()" />
