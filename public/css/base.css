@@ -62,9 +62,9 @@ body {
   to   { stroke-dashoffset: 0; }
 }
 
-.fade-in { animation: fadeIn 0.25s ease forwards; }
-.slide-in-right { animation: slideInRight 0.25s ease forwards; }
-.scale-in { animation: scaleIn 0.2s ease forwards; }
+.fade-in { animation: fadeIn 0s ease forwards; }
+.slide-in-right { animation: slideInRight 0s ease forwards; }
+.scale-in { animation: scaleIn 0s ease forwards; }
 
 /* ─── Utility Classes ──────────────────────────────────────── */
 .text-rupiah { font-variant-numeric: tabular-nums; }

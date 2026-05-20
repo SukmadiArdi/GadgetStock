@@ -56,8 +56,14 @@
         <textarea id="f-desc" class="form-input form-textarea" placeholder="Product description..."></textarea>
       </div>
       <div class="form-group">
-        <label class="form-label">Product Image URL</label>
-        <input type="url" id="f-image" class="form-input" placeholder="https://..." />
+        <label class="form-label">Product Image (URL or Upload)</label>
+        <div style="display:flex;gap:0.5rem;align-items:center;">
+          <input type="url" id="f-image" class="form-input" placeholder="https://..." style="flex:1;" />
+          <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('f-upload').click()" title="Upload Image" style="padding:0.5rem;width:2.5rem;height:2.5rem;flex-shrink:0;">
+            <span class="material-symbols-outlined">upload_file</span>
+          </button>
+          <input type="file" id="f-upload" accept="image/png, image/jpeg, image/webp" style="display:none;" onchange="handleImageUpload(event)" />
+        </div>
       </div>
     </div>
 
@@ -144,6 +150,47 @@ document.getElementById('f-image').addEventListener('input', () => {
   if (url) prev.innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:contain;" onerror="this.style.display='none'">`;
   else prev.innerHTML = `<span class="material-symbols-outlined" style="font-size:4rem;color:var(--outline);">image</span>`;
 });
+
+window.handleImageUpload = function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(event) {
+    const img = new Image();
+    img.onload = function() {
+      // Resize to max 600px width/height to save database space
+      const max_size = 600;
+      let width = img.width;
+      let height = img.height;
+
+      if (width > height) {
+        if (width > max_size) {
+          height *= max_size / width;
+          width = max_size;
+        }
+      } else {
+        if (height > max_size) {
+          width *= max_size / height;
+          height = max_size;
+        }
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+      const input = document.getElementById('f-image');
+      input.value = dataUrl;
+      input.dispatchEvent(new Event('input')); // Update preview
+    };
+    img.src = event.target.result;
+  };
+  reader.readAsDataURL(file);
+};
 
 async function init() {
   const params = getHashParams();

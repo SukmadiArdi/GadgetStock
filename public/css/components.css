@@ -97,11 +97,17 @@
 .form-textarea { resize: vertical; min-height: 5rem; }
 
 /* ─── Table ────────────────────────────────────────────────── */
-.data-table { width: 100%; border-collapse: collapse; }
+.data-table { width: 100%; border-collapse: separate; border-spacing: 0; }
 .data-table thead tr { background: var(--surface-container-low); }
 .data-table th {
-  padding: 1rem 1.5rem;
-  font-size: 0.625rem;
+  position: sticky;
+  top: 0;
+  background: var(--surface-container-low);
+  z-index: 10;
+  border-bottom: 1px solid rgba(196,198,207,0.15);
+  padding: 0.875rem 1.25rem;
+  font-size: 0.6875rem;
+  vertical-align: middle;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -110,8 +116,9 @@
   white-space: nowrap;
 }
 .data-table td {
-  padding: 1.125rem 1.5rem;
+  padding: 1rem 1.25rem;
   font-size: 0.875rem;
+  vertical-align: middle;
   border-bottom: 1px solid rgba(196,198,207,0.1);
   color: var(--on-surface);
 }

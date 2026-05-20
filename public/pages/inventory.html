@@ -38,8 +38,8 @@
         <table class="data-table">
           <thead><tr>
             <th>SKU</th><th>Brand</th><th>Model</th><th>Category</th>
-            <th style="text-align:right;">Price</th><th style="min-width:100px;">Status</th>
-            <th style="text-align:right;">Stock</th><th></th>
+            <th style="text-align:right;">Price</th><th style="text-align:center; min-width:100px;">Status</th>
+            <th style="text-align:right;">Stock</th><th style="text-align:center;">Action</th>
           </tr></thead>
           <tbody id="inventory-tbody">
             <tr><td colspan="8" style="text-align:center;padding:3rem;"><div class="skeleton" style="height:1rem;"></div></td></tr>
@@ -153,9 +153,9 @@ async function loadInventory() {
         <td>${p.name}</td>
         <td style="font-size:0.8125rem;color:var(--on-surface-variant);">${p.category||'—'}</td>
         <td style="text-align:right;font-weight:700;color:#1e3a5f;" class="text-rupiah">${formatRupiah(p.price_sell)}</td>
-        <td><span class="badge ${s.class}">${s.label}</span></td>
+        <td style="text-align:center;"><span class="badge ${s.class}">${s.label}</span></td>
         <td style="text-align:right;font-weight:700;${p.stock===0?'color:var(--error)':p.stock<=p.stock_min?'color:#b45309':''}">${p.stock}</td>
-        <td><button class="btn btn-ghost btn-sm" onclick="navigate('/product-detail?id=${p.id}')"><span class="material-symbols-outlined" style="font-size:1rem;">edit</span></button></td>
+        <td style="text-align:center;"><button class="btn btn-ghost btn-sm" onclick="navigate('/product-detail?id=${p.id}')" title="Edit"><span class="material-symbols-outlined" style="font-size:1.125rem;">edit</span></button></td>
       </tr>`;
     }).join('');
 

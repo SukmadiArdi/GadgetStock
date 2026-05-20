@@ -36,8 +36,16 @@
   </script>
 </head>
 <body>
-
-<!-- ═══ App Shell ════════════════════════════════════════════════ -->
+  <script>
+    // Mencegah flash tampilan dashboard saat reload di halaman login
+    (function() {
+      const hash = window.location.hash;
+      const user = localStorage.getItem('gs_user');
+      if (hash === '#/login' || !user || user === 'undefined') {
+        document.body.classList.add('is-auth-page');
+      }
+    })();
+  </script><!-- ═══ App Shell ════════════════════════════════════════════════ -->
 <div id="app">
 
   <!-- ── Sidebar (Desktop) ──────────────────────────────────── -->
