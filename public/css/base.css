@@ -44,7 +44,27 @@ body {
 }
 .icon-filled { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
 
-/* ─── Animations are in animations.css ─────────────────────── */
+/* ─── Animations ───────────────────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(0.5rem); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(1rem); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes checkmark {
+  from { stroke-dashoffset: 100; }
+  to   { stroke-dashoffset: 0; }
+}
+
+.fade-in { animation: fadeIn 0.25s ease forwards; }
+.slide-in-right { animation: slideInRight 0.25s ease forwards; }
+.scale-in { animation: scaleIn 0.2s ease forwards; }
 
 /* ─── Utility Classes ──────────────────────────────────────── */
 .text-rupiah { font-variant-numeric: tabular-nums; }

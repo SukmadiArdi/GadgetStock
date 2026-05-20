@@ -1,9 +1,40 @@
 <!-- pages/low-stock.html -->
 <div class="fade-in">
-
-  <div class="page-header">
-    <p class="page-eyebrow">Monitoring</p>
-    <h1 class="page-title">Low Stock Alerts</h1>
+  <style>
+    #alert-summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .alert-card {
+      padding: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      border-left: 4px solid transparent;
+    }
+    @media (max-width: 767px) {
+      #alert-summary {
+        grid-template-columns: 1fr;
+      }
+      .alert-card {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+      }
+      .alert-card-actions {
+        flex-direction: row !important;
+        justify-content: stretch;
+      }
+      .alert-card-actions button {
+        flex: 1;
+      }
+    }
+  </style>
+  <div style="margin-bottom:2rem;">
+    <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.15em;font-weight:700;color:var(--on-surface-variant);">Monitoring</p>
+    <h1 style="font-size:1.875rem;font-weight:800;color:#1e3a5f;">Low Stock Alerts</h1>
   </div>
 
   <div id="alert-summary">

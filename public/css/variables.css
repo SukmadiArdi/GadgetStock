@@ -57,93 +57,47 @@
   --sidebar-w: 16rem; /* 256px = w-64 */
   --header-h:  3.5rem;
   --tax-rate:  0.085;
-
-  /* ── Semantic tokens (adapts in dark mode) ── */
-  --text-heading:          #1e3a5f;    /* page titles, user name */
-  --text-muted:            #94a3b8;    /* secondary labels, role text */
-  --text-on-secondary-btn: #1e1e1e;   /* button secondary text */
-  --avatar-bg:             #e2e8f0;   /* avatar placeholder background */
-
-  /* ── Badge colours ── */
-  --badge-success-bg:  #dcfce7;
-  --badge-success-fg:  #15803d;
-  --badge-warning-fg:  #7c2d12;
-
-  /* ── Toast colours ── */
-  --toast-success-bg:  #15803d;
-
-  /* ── Table row hover ── */
-  --table-row-hover:   rgba(243, 244, 245, 0.6);
 }
 
 [data-theme="dark"] {
-  /* ── Primary ── */
-  --primary-container:       #1a3a5c;   /* tombol utama, badge info */
-  --primary:                 #7a9abf;
-  --on-primary:              #f0f4ff;
-  --on-primary-container:    #c2d8f5;
+  --primary-container:       #0a2d52;
+  --primary:                 #6f88ad;
+  --on-primary:              #ffffff;
+  --on-primary-container:    #d4e3ff;
 
-  /* ── Secondary ── */
-  --secondary:               #a8a6a6;
-  --on-secondary:            #1e2022;
-  --secondary-container:     #2c2f32;
-  --on-secondary-container:  #d4d2d2;
+  --secondary:               #c8c6c6;
+  --on-secondary:            #2e3132;
+  --secondary-container:     #333537;
+  --on-secondary-container:  #e4e2e1;
 
-  /* ── Tertiary ── */
-  --tertiary:                #f0a882;
-  --on-tertiary:             #3a1500;
-  --tertiary-container:      #4a2010;
-  --on-tertiary-container:   #fcd5bf;
+  --tertiary:                #fdb69a;
+  --on-tertiary:             #391303;
+  --tertiary-container:      #522415;
+  --on-tertiary-container:   #ffdbce;
 
-  /* ── Background & Surface ──
-     Sedikit diangkat dari pure black supaya kontras teks tidak terlalu ekstrem */
-  --background:              #161b22;  /* biru-tua gelap, lebih enak di mata */
-  --on-background:           #e8eaf0;  /* off-white hangat — bukan pure white */
-  --surface:                 #161b22;
-  --on-surface:              #e8eaf0;  /* teks utama */
-  --surface-variant:         #252b34;
-  --on-surface-variant:      #b8c0cc;  /* teks sekunder — lebih terang, mudah dibaca */
-  --surface-bright:          #1e242c;
-  --surface-dim:             #0f1217;
-  --surface-tint:            #8ab4f8;
+  --background:              #121212;
+  --on-background:           #e1e3e4;
+  --surface:                 #121212;
+  --on-surface:              #e1e3e4;
+  --surface-variant:         #2d3135;
+  --on-surface-variant:      #a8aab0;
+  --surface-bright:          #1e1e1e;
+  --surface-dim:             #0f0f0f;
+  --surface-tint:            #afc8f0;
 
-  /* ── Surface Containers (layer dari bawah ke atas) ── */
-  --surface-container-lowest: #0d1117;  /* background paling dalam */
-  --surface-container-low:   #161b22;  /* cards biasa */
-  --surface-container:       #1c2128;  /* hover states */
-  --surface-container-high:  #22272e;  /* sidebar, header */
-  --surface-container-highest: #2d333b;  /* elemen paling atas */
+  --surface-container-lowest: #0c0c0c;
+  --surface-container-low:   #181818;
+  --surface-container:       #202020;
+  --surface-container-high:  #282828;
+  --surface-container-highest: #303030;
 
-  /* ── Error ── */
-  --error:                   #ff7b72;  /* merah terang — terbaca di dark bg */
-  --on-error:                #1a0000;
-  --error-container:         #7a1f1f;
-  --on-error-container:      #ffd7d7;
+  --error:                   #ffb4ab;
+  --on-error:                #690005;
+  --error-container:         #93000a;
+  --on-error-container:      #ffdad6;
 
-  /* ── Outline ── */
-  --outline:                 #8b949e;  /* border & placeholder text — lebih terang */
-  --outline-variant:         #30363d;  /* border halus */
-  --inverse-surface:         #e8eaf0;
-  --inverse-on-surface:      #161b22;
-
-  /* ═══════════════════════════════════════════════════
-     Semantic tokens — yang dipakai langsung di komponen
-     ═══════════════════════════════════════════════════ */
-
-  /* Teks */
-  --text-heading:          #f0f2f8;   /* heading — putih hangat, nyaman di mata */
-  --text-muted:            #b0b8c4;   /* label sekunder — lebih terang & jelas */
-  --text-on-secondary-btn: #dde3eb;  /* teks di tombol secondary mode gelap */
-  --avatar-bg:             #252b34;  /* placeholder avatar */
-
-  /* Badge */
-  --badge-success-bg:  rgba(56, 139, 87, 0.2);  /* hijau transparan */
-  --badge-success-fg:  #56d364;                  /* hijau terang */
-  --badge-warning-fg:  #e3b341;                  /* kuning-amber, lebih natural dari oranye */
-
-  /* Toast */
-  --toast-success-bg:  #1f6b35;   /* hijau gelap */
-
-  /* Table hover */
-  --table-row-hover:   rgba(139, 148, 158, 0.08);  /* sangat subtle */
+  --outline:                 #606469;
+  --outline-variant:         #3b3e42;
+  --inverse-surface:         #e1e3e4;
+  --inverse-on-surface:      #121212;
 }
