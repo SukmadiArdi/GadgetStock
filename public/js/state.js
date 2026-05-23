@@ -208,6 +208,12 @@ const State = {
     }
   },
 
+  clearPageListeners() {
+    for (const event in this._listeners) {
+      this._listeners[event] = this._listeners[event].filter(cb => cb.name === 'syncUserUI');
+    }
+  },
+
   _emit(event) {
     if (event === 'cart') {
       // Don't persist cart in guest mode

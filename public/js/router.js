@@ -63,6 +63,7 @@ async function render() {
 
   // Run cleanup of previous page
   if (typeof currentCleanup === 'function') { currentCleanup(); currentCleanup = null; }
+  State.clearPageListeners();
 
   const filePath = routes[path] || routes['/'];
 
@@ -79,11 +80,16 @@ async function render() {
     // Update active nav state
     updateNavActive(path);
 
-    // Execute inline scripts
+    // Execute inline and external scripts
     container.querySelectorAll('script').forEach(oldScript => {
       const newScript = document.createElement('script');
       newScript.type = 'module';
-      if (oldScript.src) { newScript.src = oldScript.src; }
+      if (oldScript.src) {
+        // Force the browser to re-execute external module scripts by appending a cache-buster query parameter
+        const url = new URL(oldScript.src, window.location.origin);
+        url.searchParams.set('t', Date.now());
+        newScript.src = url.pathname + url.search;
+      }
       else { newScript.textContent = oldScript.textContent; }
       oldScript.replaceWith(newScript);
     });

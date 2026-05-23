@@ -9,7 +9,7 @@
   </div>
 
   <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;">
-    <h1 id="page-title" style="font-size:1.75rem;font-weight:800;color:#1e3a5f;">Add Product</h1>
+    <h1 id="page-title" style="font-size:1.75rem;font-weight:800;color:var(--text-blue);">Add Product</h1>
     <button id="delete-btn" class="btn btn-danger btn-sm" style="display:none;" onclick="deleteProduct()">
       <span class="material-symbols-outlined">delete</span>Delete
     </button>
@@ -56,9 +56,12 @@
         <textarea id="f-desc" class="form-input form-textarea" placeholder="Product description..."></textarea>
       </div>
       <div class="form-group">
-        <label class="form-label">Product Image (URL or Upload)</label>
+        <label class="form-label">Product Image (URL, Upload, or Camera)</label>
         <div style="display:flex;gap:0.5rem;align-items:center;">
           <input type="url" id="f-image" class="form-input" placeholder="https://..." style="flex:1;" />
+          <button type="button" class="btn btn-secondary btn-sm" onclick="openCamera()" title="Take Photo" style="padding:0.5rem;width:2.5rem;height:2.5rem;flex-shrink:0;">
+            <span class="material-symbols-outlined">photo_camera</span>
+          </button>
           <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('f-upload').click()" title="Upload Image" style="padding:0.5rem;width:2.5rem;height:2.5rem;flex-shrink:0;">
             <span class="material-symbols-outlined">upload_file</span>
           </button>
@@ -99,7 +102,7 @@
       <!-- Profit Indicator -->
       <div class="card" style="padding:1rem;background:var(--surface-container-low);border:none;">
         <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;color:var(--on-surface-variant);margin-bottom:0.5rem;">Margin Estimate</p>
-        <p id="margin-text" style="font-size:1rem;font-weight:700;color:#1e3a5f;">— %</p>
+        <p id="margin-text" style="font-size:1rem;font-weight:700;color:var(--text-blue);">— %</p>
       </div>
     </div>
 
@@ -113,201 +116,26 @@
   </form>
 </div>
 
+<!-- Camera Capture Modal -->
+<div id="camera-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:2000;align-items:center;justify-content:center;padding:1.5rem;backdrop-filter:blur(10px);">
+  <div class="card" style="width:100%;max-width:500px;overflow:hidden;position:relative;background:#000;border-radius:1rem;border:1px solid rgba(255,255,255,0.1);">
+    <div style="position:relative;width:100%;aspect-ratio:4/3;background:#111;display:flex;align-items:center;justify-content:center;">
+      <video id="camera-video" autoplay playsinline style="width:100%;height:100%;object-fit:cover;"></video>
+      <div style="position:absolute;inset:0;border:2px dashed rgba(255,255,255,0.3);pointer-events:none;margin:2rem;"></div>
+    </div>
+    <div style="padding:1.25rem 1.5rem;background:var(--surface-container-highest);display:flex;justify-content:space-between;align-items:center;gap:1rem;">
+      <button class="btn btn-secondary btn-sm" id="close-camera-btn" onclick="closeCamera()">
+        <span class="material-symbols-outlined" style="font-size:1.125rem;">close</span>Cancel
+      </button>
+      <button class="btn btn-primary" id="capture-photo-btn" onclick="capturePhoto()" style="background:linear-gradient(135deg,#001f3f,#1a3a6b);color:#fff;border:none;">
+        <span class="material-symbols-outlined" style="font-size:1.25rem;">photo_camera</span>Take Photo
+      </button>
+    </div>
+  </div>
+</div>
+
 <style>
   .breadcrumb-link:hover { text-decoration: underline; }
 </style>
 
-<script type="module">
-import { ProductsAPI } from '/js/api.js';
-import { formatRupiah, getHashParams, showToast, showConfirm } from '/js/utils.js';
-
-let productId = null;
-
-window.formatCurrencyInput = function(el) {
-  let val = el.value.replace(/[^0-9]/g, '');
-  if (val) el.value = parseInt(val, 10).toLocaleString('id-ID');
-  else el.value = '';
-};
-
-function calcMargin() {
-  const sellStr = document.getElementById('f-price-sell').value.replace(/\./g, '');
-  const buyStr  = document.getElementById('f-price-buy').value.replace(/\./g, '');
-  const sell = parseInt(sellStr) || 0;
-  const buy  = parseInt(buyStr) || 0;
-  const el   = document.getElementById('margin-text');
-  if (sell && buy) {
-    const pct = (((sell - buy) / buy) * 100).toFixed(1);
-    el.textContent = `${formatRupiah(sell - buy)} (${pct}%)`;
-    el.style.color = pct > 0 ? '#15803d' : 'var(--error)';
-  } else el.textContent = '— %';
-}
-
-document.getElementById('f-price-sell').addEventListener('input', calcMargin);
-document.getElementById('f-price-buy').addEventListener('input', calcMargin);
-document.getElementById('f-image').addEventListener('input', () => {
-  const url = document.getElementById('f-image').value;
-  const prev = document.getElementById('img-preview');
-  if (url) prev.innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:contain;" onerror="this.style.display='none'">`;
-  else prev.innerHTML = `<span class="material-symbols-outlined" style="font-size:4rem;color:var(--outline);">image</span>`;
-});
-
-window.handleImageUpload = function(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = function(event) {
-    const img = new Image();
-    img.onload = function() {
-      // Resize to max 600px width/height to save database space
-      const max_size = 600;
-      let width = img.width;
-      let height = img.height;
-
-      if (width > height) {
-        if (width > max_size) {
-          height *= max_size / width;
-          width = max_size;
-        }
-      } else {
-        if (height > max_size) {
-          width *= max_size / height;
-          height = max_size;
-        }
-      }
-
-      const canvas = document.createElement('canvas');
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, width, height);
-      
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
-      const input = document.getElementById('f-image');
-      input.value = dataUrl;
-      input.dispatchEvent(new Event('input')); // Update preview
-    };
-    img.src = event.target.result;
-  };
-  reader.readAsDataURL(file);
-};
-
-async function init() {
-  const params = getHashParams();
-  if (params.id) {
-    productId = params.id;
-    document.getElementById('page-title').textContent = 'Edit Product';
-    document.getElementById('save-label').textContent = 'Save Changes';
-    document.getElementById('delete-btn').style.display = 'flex';
-    try {
-      const p = await ProductsAPI.get(productId);
-      document.getElementById('breadcrumb-title').textContent = p.name;
-      document.getElementById('f-name').value = p.name;
-      document.getElementById('f-brand').value = p.brand || '';
-      document.getElementById('f-sku').value = p.sku;
-      document.getElementById('f-sku').readOnly = true;
-      document.getElementById('f-category').value = p.category || '';
-      document.getElementById('f-desc').value = p.description || '';
-      document.getElementById('f-price-sell').value = parseInt(p.price_sell).toLocaleString('id-ID');
-      document.getElementById('f-price-buy').value = p.price_buy ? parseInt(p.price_buy).toLocaleString('id-ID') : '';
-      document.getElementById('f-stock').value = p.stock;
-      document.getElementById('f-stock-min').value = p.stock_min;
-      document.getElementById('f-image').value = p.image_url || '';
-      if (p.image_url) document.getElementById('img-preview').innerHTML = `<img src="${p.image_url}" style="width:100%;height:100%;object-fit:contain;">`;
-      calcMargin();
-    } catch (err) { showToast('Failed to load product: ' + err.message, 'error'); }
-  }
-}
-
-window.saveProduct = async function(e) {
-  e.preventDefault();
-  const btn = document.getElementById('save-btn');
-  btn.disabled = true; btn.querySelector('.material-symbols-outlined').textContent = 'hourglass_empty';
-  try {
-    const body = {
-      name: document.getElementById('f-name').value,
-      brand: document.getElementById('f-brand').value,
-      sku: document.getElementById('f-sku').value,
-      category: document.getElementById('f-category').value,
-      description: document.getElementById('f-desc').value,
-      price_sell: parseInt(document.getElementById('f-price-sell').value.replace(/\./g, '')),
-      price_buy: parseInt(document.getElementById('f-price-buy').value.replace(/\./g, '')) || 0,
-      stock: parseInt(document.getElementById('f-stock').value) || 0,
-      stock_min: parseInt(document.getElementById('f-stock-min').value) || 5,
-      image_url: document.getElementById('f-image').value || null
-    };
-
-    if (State.isGuest) {
-      // Guest mode: simulate success without database write
-      showToast(`[Demo] Product "${body.name}" ${productId ? 'updated' : 'added'} — tidak disimpan ke database`, 'info', 3000);
-      setTimeout(() => navigate('/inventory'), 1200);
-      return;
-    }
-
-    if (productId) await ProductsAPI.update(productId, body);
-    else await ProductsAPI.create(body);
-    showToast(`Product ${productId ? 'updated' : 'created'} successfully!`, 'success');
-    setTimeout(() => navigate('/inventory'), 1000);
-  } catch (err) {
-    showToast('Error: ' + err.message, 'error');
-    btn.disabled = false; btn.querySelector('.material-symbols-outlined').textContent = 'save';
-  }
-};
-
-window.deleteProduct = function() {
-  if (State.isGuest) {
-    showToast('[Demo] Hapus produk tidak tersimpan ke database', 'info', 3000);
-    setTimeout(() => navigate('/inventory'), 1200);
-    return;
-  }
-  showConfirm('This will deactivate the product. Continue?', async () => {
-    try {
-      await ProductsAPI.delete(productId);
-      showToast('Product deactivated', 'info');
-      setTimeout(() => navigate('/inventory'), 800);
-    } catch (err) { showToast('Delete failed: ' + err.message, 'error'); }
-  });
-};
-
-// ─── Scanner Implementation ───────────────────────────────────────
-let html5QrCode = null;
-
-window.openScanner = async function() {
-  const modal = document.getElementById('scanner-modal');
-  modal.style.display = 'flex';
-  document.getElementById('close-scanner-btn').onclick = closeScanner;
-  
-  if (!html5QrCode) {
-    html5QrCode = new Html5Qrcode("reader");
-  }
-
-  const config = { fps: 10, qrbox: { width: 250, height: 150 } };
-  
-  try {
-    await html5QrCode.start(
-      { facingMode: "environment" }, 
-      config,
-      (decodedText) => {
-        const sku = decodedText.trim();
-        if (navigator.vibrate) navigator.vibrate(100);
-        
-        document.getElementById('f-sku').value = sku;
-        showToast(`SKU Scanned: ${sku}`, 'success');
-        closeScanner();
-      }
-    );
-  } catch (err) {
-    showToast('Camera error: ' + err.message, 'error');
-    closeScanner();
-  }
-};
-
-window.closeScanner = async function() {
-  if (html5QrCode && html5QrCode.isScanning) {
-    await html5QrCode.stop();
-  }
-  document.getElementById('scanner-modal').style.display = 'none';
-};
-
-init();
-</script>
+<script type="module" src="/js/pages/product-detail.js"></script>

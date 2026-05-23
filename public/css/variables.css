@@ -49,6 +49,8 @@
   --inverse-surface:         #2e3132;
   --inverse-on-surface:      #f0f1f2;
 
+  --text-blue:               #1e3a5f;
+
   --radius-sm:  0.25rem;
   --radius-md:  0.5rem;
   --radius-lg:  0.75rem;
@@ -64,6 +66,8 @@
   --primary:                 #6f88ad;
   --on-primary:              #ffffff;
   --on-primary-container:    #d4e3ff;
+
+  --text-blue:               #60a5fa;
 
   --secondary:               #c8c6c6;
   --on-secondary:            #2e3132;
