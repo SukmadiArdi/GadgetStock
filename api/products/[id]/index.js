@@ -19,14 +19,14 @@ module.exports = async (req, res) => {
   if (!id) return res.status(400).json({ error: 'Product ID required' });
 
   try {
-    // ── GET: single product ──────────────────────────────────────
+    // === GET: single product =====================================
     if (req.method === 'GET') {
       const { data, error } = await supabase.from('products').select('*').eq('id', id).single();
       if (error) return res.status(404).json({ error: 'Product not found' });
       return res.status(200).json(data);
     }
 
-    // ── PUT: update product ──────────────────────────────────────
+    // === PUT: update product =====================================
     if (req.method === 'PUT') {
       const { stock_add, ...fields } = req.body;
 
@@ -59,7 +59,7 @@ module.exports = async (req, res) => {
       return res.status(200).json(data);
     }
 
-    // ── DELETE: soft delete ──────────────────────────────────────
+    // === DELETE: soft delete =====================================
     if (req.method === 'DELETE') {
       const { error } = await supabase.from('products').update({ is_active: false }).eq('id', id);
       if (error) throw error;

@@ -14,7 +14,7 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   try {
-    // ── GET: list products ───────────────────────────────────────
+    // === GET: list products =======================================
     if (req.method === 'GET') {
       const { search = '', category = '', status = '', page = 1, limit = 20 } = req.query;
       const offset = (parseInt(page) - 1) * parseInt(limit);
@@ -41,7 +41,7 @@ module.exports = async (req, res) => {
       });
     }
 
-    // ── POST: create product ─────────────────────────────────────
+    // === POST: create product =====================================
     if (req.method === 'POST') {
       const { sku, name, brand, category, description, price_sell, price_buy, stock, stock_min, image_url } = req.body;
       if (!sku || !name || !price_sell) return res.status(400).json({ error: 'sku, name, price_sell are required' });

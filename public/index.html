@@ -45,10 +45,10 @@
         document.body.classList.add('is-auth-page');
       }
     })();
-  </script><!-- ═══ App Shell ════════════════════════════════════════════════ -->
+  </script><!-- === App Shell ================================================ -->
 <div id="app">
 
-  <!-- ── Sidebar (Desktop) ──────────────────────────────────── -->
+  <!-- --- Sidebar (Desktop) ------------------------------------ -->
   <aside id="sidebar">
     <div class="nav-logo">
       <div class="nav-logo-icon">
@@ -90,7 +90,7 @@
 
   </aside>
 
-  <!-- ── Main Content ─────────────────────────────────────── -->
+  <!-- --- Main Content --------------------------------------- -->
   <div id="main-content">
 
     <!-- Top Bar -->
@@ -154,7 +154,7 @@
   </button>
 </div>
 
-  <!-- ── Bottom Nav (Mobile) ───────────────────────────────── -->
+  <!-- --- Bottom Nav (Mobile) --------------------------------- -->
 <nav id="bottom-nav">
   <a class="bottom-nav-item active" data-nav="Dashboard" onclick="navigate('/dashboard')">
     <span class="material-symbols-outlined">dashboard</span>
@@ -196,7 +196,7 @@
   </div>
 </div>
 
-<!-- ═══ App Bootstrap ════════════════════════════════════════════ -->
+<!-- === App Bootstrap ======================================== -->
 <script type="module">
   import { initRouter, navigate } from '/js/router.js';
   import { showToast } from '/js/utils.js';
@@ -316,7 +316,7 @@
   // Refresh setiap 5 menit
   setInterval(checkLowStock, 5 * 60 * 1000);
 
-  // ─── Scroll Persistence ─────────────────────────────────────────
+  // === Scroll Persistence =========================================
   window.addEventListener('page:loaded', (e) => {
     const path = e.detail.path;
     const savedScroll = sessionStorage.getItem(`gs_scroll_${path}`);

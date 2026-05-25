@@ -8,9 +8,19 @@ const supabase = createClient(
 );
 
 function generateTxnNumber() {
-  const rand = Math.floor(100 + Math.random() * 900);
-  const letter = String.fromCharCode(65 + Math.floor(Math.random() * 26));
-  return `TXN-${rand}-${letter}`;
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const dateStr = `${year}${month}${day}`;
+  
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+  const timeStr = `${hours}${minutes}${seconds}`;
+  
+  const rand = Math.floor(1000 + Math.random() * 9000); // 4-digit random
+  return `TXN-${dateStr}-${timeStr}-${rand}`;
 }
 
 module.exports = async (req, res) => {
@@ -20,7 +30,7 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   try {
-    // ── GET: list transactions ───────────────────────────────────
+    // === GET: list transactions ===================================
     if (req.method === 'GET') {
       const { date, start_date, end_date, method, status, page = 1, limit = 20, search = '' } = req.query;
       const offset = (parseInt(page) - 1) * parseInt(limit);
@@ -49,7 +59,7 @@ module.exports = async (req, res) => {
       });
     }
 
-    // ── POST: create transaction ─────────────────────────────────
+    // === POST: create transaction =================================
     if (req.method === 'POST') {
       const { items, customer_name, payment_method, cash_received, cashier_id, terminal, notes } = req.body;
 
@@ -62,76 +72,57 @@ module.exports = async (req, res) => {
       if (settingsData) settingsData.forEach(s => settingsMap[s.key] = s.value);
 
       // Calculate totals
-      const taxRate = parseFloat(settingsMap['tax_rate'] || process.env.TAX_RATE || 0.085);
+      const taxRate = parseFloat(settingsMap['tax_rate'] || process.env.TAX_RATE || 0.11);
       const subtotal   = items.reduce((s, i) => s + (i.unit_price * i.quantity), 0);
       const tax_amount = Math.round(subtotal * taxRate);
       const total      = subtotal + tax_amount;
       const change_amount = payment_method === 'cash' && cash_received
         ? Math.max(0, parseInt(cash_received) - total) : 0;
 
-      // Verify stock availability
-      for (const item of items) {
-        const { data: product } = await supabase.from('products').select('stock, name').eq('id', item.product_id).single();
-        if (!product) return res.status(400).json({ error: `Product ${item.product_id} not found` });
-        if (product.stock < item.quantity) {
-          return res.status(400).json({ error: `Insufficient stock for ${product.name} (available: ${product.stock})` });
-        }
-      }
+      // Prepare items format for PostgreSQL function: product_id, product_name, product_sku, quantity, unit_price
+      const preparedItems = items.map(item => ({
+        product_id: item.product_id,
+        product_name: item.product_name,
+        product_sku: item.product_sku,
+        quantity: parseInt(item.quantity),
+        unit_price: parseInt(item.unit_price)
+      }));
 
-      // Create transaction header
       const txnNumber = generateTxnNumber();
-      const { data: txn, error: txnErr } = await supabase.from('transactions').insert({
-        txn_number: txnNumber,
-        cashier_id: cashier_id || null,
-        customer_name: customer_name || 'Walk-in Customer',
-        subtotal, tax_amount, total,
-        payment_method,
-        cash_received: cash_received ? parseInt(cash_received) : null,
-        change_amount,
-        terminal: terminal || 'Terminal 01',
-        notes,
-        status: 'completed'
-      }).select().single();
-      if (txnErr) throw txnErr;
 
-      // Insert transaction items & update stock
-      for (const item of items) {
-        const itemSubtotal = item.unit_price * item.quantity;
+      // Call database RPC to execute sales transaction atomically
+      const { data: txnId, error: rpcErr } = await supabase.rpc('create_sales_transaction', {
+        p_txn_number: txnNumber,
+        p_cashier_id: cashier_id || null,
+        p_customer_name: customer_name || 'Walk-in Customer',
+        p_subtotal: subtotal,
+        p_tax_amount: tax_amount,
+        p_total: total,
+        p_payment_method: payment_method,
+        p_cash_received: cash_received ? parseInt(cash_received) : null,
+        p_change_amount: change_amount,
+        p_terminal: terminal || 'Terminal 01',
+        p_notes: notes || null,
+        p_items: preparedItems
+      });
 
-        await supabase.from('transaction_items').insert({
-          transaction_id: txn.id,
-          product_id: item.product_id,
-          product_name: item.product_name,
-          product_sku: item.product_sku,
-          quantity: item.quantity,
-          unit_price: item.unit_price,
-          subtotal: itemSubtotal
-        });
-
-        // Decrement stock
-        const { data: prod } = await supabase.from('products').select('stock').eq('id', item.product_id).single();
-        const newStock = (prod?.stock || 0) - item.quantity;
-        await supabase.from('products').update({ stock: Math.max(0, newStock) }).eq('id', item.product_id);
-
-        // Stock log
-        await supabase.from('stock_logs').insert({
-          product_id: item.product_id,
-          change_type: 'sale',
-          qty_before: prod?.stock || 0,
-          qty_change: -item.quantity,
-          qty_after: Math.max(0, newStock),
-          note: `Sale: ${txnNumber}`,
-          transaction_id: txn.id,
-          created_by: cashier_id || null
-        });
+      if (rpcErr) {
+        console.error('RPC transaction error:', rpcErr);
+        // Handle database-raised validation messages (e.g. Insufficient stock)
+        if (rpcErr.message && rpcErr.message.includes('Insufficient stock')) {
+          return res.status(400).json({ error: rpcErr.message });
+        }
+        return res.status(400).json({ error: rpcErr.message || 'Transaction failed in database' });
       }
 
       // Return full transaction with items
-      const { data: fullTxn } = await supabase
+      const { data: fullTxn, error: fetchErr } = await supabase
         .from('transactions')
         .select(`*, transaction_items(*)`)
-        .eq('id', txn.id)
+        .eq('id', txnId)
         .single();
+
+      if (fetchErr) throw fetchErr;
 
       return res.status(201).json(fullTxn);
     }

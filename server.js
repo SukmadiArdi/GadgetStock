@@ -9,14 +9,14 @@ const path    = require('path');
 const app  = express();
 const PORT = process.env.PORT || 3000;
 
-// ─── Middleware ────────────────────────────────────────────────
+// === Middleware ================================================
 app.use(cors());
 app.use(express.json());
 
-// ─── Static files (public/) ────────────────────────────────────
+// === Static files (public/) ====================================
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ─── Helper: adapt Vercel serverless handler ke Express ────────
+// === Helper: adapt Vercel serverless handler ke Express ========
 // Vercel format: module.exports = async (req, res) => {}
 // Express format: (req, res, next) => {}
 // Query params di Vercel pakai req.query, Express juga sama ✅
@@ -43,7 +43,7 @@ function vercelHandler(handlerPath, paramMap = {}) {
   };
 }
 
-// ─── API Routes ────────────────────────────────────────────────
+// === API Routes ================================================
 
 // Auth
 app.post('/api/auth',
@@ -98,7 +98,7 @@ app.get('/api/reports/daily',
 app.get('/api/reports/monthly',
   vercelHandler('./api/reports/monthly/index'));
 
-// ─── SPA Fallback ──────────────────────────────────────────────
+// === SPA Fallback ==============================================
 // express.static sudah melayani semua file di public/
 // Fallback ini hanya untuk URL yang bukan file statis dan bukan /api/
 // Contoh: user mengetik http://localhost:3000/dashboard → index.html
@@ -106,21 +106,21 @@ app.use((req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// ─── Error Handler ─────────────────────────────────────────────
+// === Error Handler =============================================
 app.use((err, req, res, next) => {
   console.error('Server error:', err);
   res.status(500).json({ error: err.message || 'Internal server error' });
 });
 
-// ─── Start ─────────────────────────────────────────────────────
+// === Start =====================================================
 app.listen(PORT, () => {
   console.log('');
-  console.log('  ██████╗  █████╗ ██████╗  ██████╗ ███████╗████████╗    ███████╗████████╗ ██████╗  ██████╗██╗  ██╗');
-  console.log('  ██╔════╝ ██╔══██╗██╔══██╗██╔════╝ ██╔════╝╚══██╔══╝    ██╔════╝╚══██╔══╝██╔═══██╗██╔════╝██║ ██╔╝');
-  console.log('  ██║  ███╗███████║██║  ██║██║  ███╗█████╗     ██║       ███████╗   ██║   ██║   ██║██║     █████╔╝ ');
-  console.log('  ██║   ██║██╔══██║██║  ██║██║   ██║██╔══╝     ██║       ╚════██║   ██║   ██║   ██║██║     ██╔═██╗ ');
-  console.log('  ╚██████╔╝██║  ██║██████╔╝╚██████╔╝███████╗   ██║       ███████║   ██║   ╚██████╔╝╚██████╗██║  ██╗');
-  console.log('   ╚═════╝ ╚═╝  ╚═╝╚═════╝  ╚═════╝ ╚══════╝   ╚═╝       ╚══════╝   ╚═╝    ╚═════╝  ╚═════╝╚═╝  ╚═╝');
+  console.log('   _____             _  _____ _             _ ');
+  console.log('  / ____|           | |/ ____| |           | |');
+  console.log(' | |  __  __ _  __| | (___ | |_ ___   ___| | __');
+  console.log(' | | |_ |/ _` |/ _` |\\___ \\| __/ _ \\ / __| |/ /');
+  console.log(' | |__| | (_| | (_| |____) | || (_) | (__|   < ');
+  console.log('  \\_____|\\__,_|\\__,_|_____/ \\__\\___/ \\___|_|\\_\\');
   console.log('');
   console.log(`  🚀 Server running at: http://localhost:${PORT}`);
   console.log(`  📦 API ready at:      http://localhost:${PORT}/api/`);

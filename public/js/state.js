@@ -1,9 +1,6 @@
 // public/js/state.js - Global in-memory state management
 
 const State = {
-  // Current active cart items
-  cart: [],
-
   // Currently logged-in user
   currentUser: (() => {
     try {
@@ -44,7 +41,7 @@ const State = {
   // Listeners for state changes
   _listeners: {},
 
-  // ─── Cart Methods ─────────────────────────────────────────
+  // === Cart Methods =========================================
 
   addToCart(product, qty = 1) {
     const existing = this.cart.find(i => i.product_id === product.id);
@@ -94,14 +91,14 @@ const State = {
     return { subtotal, tax, total, itemCount: this.cart.length };
   },
 
-  // ─── Transaction Methods ───────────────────────────────────
+  // === Transaction Methods ===================================
 
   setCurrentTxn(txn) {
     this.currentTxn = txn;
     this._emit('txn');
   },
 
-  // ─── Settings Methods ──────────────────────────────────────
+  // === Settings Methods ======================================
   
   async updateSettings(newSettings) {
     this.settings = { ...this.settings, ...newSettings };
@@ -159,7 +156,7 @@ const State = {
     }
   },
 
-  // ─── User Methods ──────────────────────────────────────────
+  // === User Methods ==========================================
 
   setUser(user, profile) {
     this.currentUser = {
@@ -195,7 +192,7 @@ const State = {
     this._emit('user');
   },
 
-  // ─── Event Emitter ─────────────────────────────────────────
+  // === Event Emitter =========================================
 
   on(event, cb) {
     if (!this._listeners[event]) this._listeners[event] = [];

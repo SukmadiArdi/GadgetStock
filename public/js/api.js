@@ -31,19 +31,19 @@ async function request(path, options = {}) {
   }
 }
 
-// ─── Auth ─────────────────────────────────────────────────────────
+// === Auth =========================================================
 export const AuthAPI = {
   login: (employee_id, password) => request('/auth', { method: 'POST', body: JSON.stringify({ action: 'login', employee_id, password }) }),
   signup: (employee_id, password, full_name) => request('/auth', { method: 'POST', body: JSON.stringify({ action: 'signup', employee_id, password, full_name }) }),
   changePassword: (user_id, new_password) => request('/auth', { method: 'POST', body: JSON.stringify({ action: 'change_password', user_id, new_password }) })
 };
 
-// ─── Dashboard ────────────────────────────────────────────────────
+// === Dashboard ====================================================
 export const DashboardAPI = {
   getSummary: () => request('/dashboard/summary')
 };
 
-// ─── Products ─────────────────────────────────────────────────────
+// === Products =====================================================
 export const ProductsAPI = {
   list: (params = {}) => {
     const q = new URLSearchParams(params).toString();
@@ -55,7 +55,7 @@ export const ProductsAPI = {
   delete: (id) => request(`/products/${id}`, { method: 'DELETE' })
 };
 
-// ─── Inventory ────────────────────────────────────────────────────
+// === Inventory ====================================================
 export const InventoryAPI = {
   getLowStock: () => request('/inventory/low-stock'),
   restock: (id, qty) => request(`/products/${id}`, {
@@ -64,7 +64,7 @@ export const InventoryAPI = {
   })
 };
 
-// ─── Transactions ─────────────────────────────────────────────────
+// === Transactions =================================================
 export const TransactionsAPI = {
   list: (params = {}) => {
     const q = new URLSearchParams(params).toString();
@@ -74,7 +74,7 @@ export const TransactionsAPI = {
   create: (body) => request('/transactions', { method: 'POST', body: JSON.stringify(body) })
 };
 
-// ─── Reports ──────────────────────────────────────────────────────
+// === Reports ======================================================
 export const ReportsAPI = {
   daily: (date) => request(`/reports/daily?date=${date}`),
   monthly: (month) => request(`/reports/monthly?month=${month}`)
