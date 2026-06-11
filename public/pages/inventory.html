@@ -25,7 +25,7 @@
         <option value="low_stock">Low Stock</option>
         <option value="out_of_stock">Out of Stock</option>
       </select>
-      <button class="btn btn-primary" onclick="navigate('/product-detail')">
+      <button id="btn-add-product" class="btn btn-primary" onclick="navigate('/product-detail')">
         <span class="material-symbols-outlined">add_box</span>Add Product
       </button>
     </div>
@@ -39,7 +39,7 @@
           <thead><tr>
             <th>SKU</th><th>Brand</th><th>Model</th><th>Category</th>
             <th style="text-align:right;">Price</th><th style="text-align:center; min-width:100px;">Status</th>
-            <th style="text-align:right;">Stock</th><th style="text-align:center;">Action</th>
+            <th style="text-align:right;">Stock</th><th id="inv-action-header" style="text-align:center;">Action</th>
           </tr></thead>
           <tbody id="inventory-tbody">
             <tr><td colspan="8" style="text-align:center;padding:3rem;"><div class="skeleton" style="height:1rem;"></div></td></tr>
@@ -79,10 +79,10 @@
           <button class="btn btn-ghost btn-sm" onclick="navigate('/low-stock')" style="justify-content:flex-start;">
             <span class="material-symbols-outlined" style="color:var(--error);">warning</span>View Low Stock Alerts
           </button>
-          <button class="btn btn-ghost btn-sm" onclick="navigate('/product-detail')" style="justify-content:flex-start;">
+          <button id="qa-add-product" class="btn btn-ghost btn-sm" data-role-required="manager" onclick="navigate('/product-detail')" style="justify-content:flex-start;">
             <span class="material-symbols-outlined">add_circle</span>Add New Product
           </button>
-          <button class="btn btn-ghost btn-sm" onclick="navigate('/sales-report')" style="justify-content:flex-start;">
+          <button id="qa-sales-report" class="btn btn-ghost btn-sm" data-role-required="manager" onclick="navigate('/sales-report')" style="justify-content:flex-start;">
             <span class="material-symbols-outlined">assessment</span>View Sales Report
           </button>
         </div>

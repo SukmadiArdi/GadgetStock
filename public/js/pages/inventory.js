@@ -1,5 +1,7 @@
 import { ProductsAPI, DashboardAPI } from '/js/api.js';
-import { formatRupiah, getStockStatus, debounce, getHashParams } from '/js/utils.js';
+import { formatRupiah, getStockStatus, debounce, getHashParams, isManagerOrAbove } from '/js/utils.js';
+import State from '/js/state.js';
+
 
 let currentPage = parseInt(localStorage.getItem('gs_inv_page')) || 1;
 const limit = 12;
@@ -45,8 +47,12 @@ async function loadInventory() {
       return loadInventory();
     }
 
+    // Cek apakah user bisa manage produk
+    const canManage = isManagerOrAbove(State.currentUser);
+    const colspan = canManage ? 8 : 7;
+
     if (!products.length) {
-      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:3rem;color:var(--outline);">No products found</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="${colspan}" style="text-align:center;padding:3rem;color:var(--outline);">No products found</td></tr>`;
       document.getElementById('inventory-pagination').style.display = 'none';
       return;
     }
@@ -61,9 +67,17 @@ async function loadInventory() {
         <td style="text-align:right;font-weight:700;color:var(--text-blue);" class="text-rupiah">${formatRupiah(p.price_sell)}</td>
         <td style="text-align:center;"><span class="badge ${s.class}">${s.label}</span></td>
         <td style="text-align:right;font-weight:700;${p.stock===0?'color:var(--error)':p.stock<=p.stock_min?'color:#b45309':''}">${p.stock}</td>
-        <td style="text-align:center;"><button class="btn btn-ghost btn-sm" onclick="navigate('/product-detail?id=${p.id}')" title="Edit"><span class="material-symbols-outlined" style="font-size:1.125rem;">edit</span></button></td>
+        ${canManage ? `<td style="text-align:center;"><button class="btn btn-ghost btn-sm" onclick="navigate('/product-detail?id=${p.id}')" title="Edit"><span class="material-symbols-outlined" style="font-size:1.125rem;">edit</span></button></td>` : ''}
       </tr>`;
     }).join('');
+
+    // Sesuaikan header kolom Aksi
+    const actionHeader = document.getElementById('inv-action-header');
+    if (actionHeader) actionHeader.style.display = canManage ? '' : 'none';
+
+    // Sembunyikan tombol Add Product untuk cashier
+    const addBtn = document.getElementById('btn-add-product');
+    if (addBtn) addBtn.style.display = canManage ? '' : 'none';
 
     // Pagination
     const pag = document.getElementById('inventory-pagination');

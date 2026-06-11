@@ -1,6 +1,8 @@
 // public/js/router.js - Hash-based SPA client-side router
 
 import State from './state.js';
+import { isManagerOrAbove } from './utils.js';
+
 
 const routes = {
   '/'               : '/pages/dashboard.html',
@@ -56,6 +58,28 @@ async function render() {
     navigate('/dashboard');
     return;
   }
+
+  // ─── RBAC Route Guard ────────────────────────────────────────────
+  // Halaman yang hanya boleh diakses Manager / Admin / Guest
+  const managerOnlyRoutes = ['/sales-report', '/analytics'];
+  if (managerOnlyRoutes.includes(path) && !isManagerOrAbove(State.currentUser)) {
+    // Tampilkan toast jika fungsi sudah tersedia
+    if (typeof window.showToast === 'function') {
+      window.showToast('Akses ditolak: fitur ini hanya untuk Manager atau Admin', 'error', 4000);
+    }
+    navigate('/dashboard');
+    return;
+  }
+
+  // product-detail: cashier tidak bisa tambah/edit produk
+  if (path === '/product-detail' && !isManagerOrAbove(State.currentUser)) {
+    if (typeof window.showToast === 'function') {
+      window.showToast('Akses ditolak: hanya Manager atau Admin yang dapat mengelola produk', 'error', 4000);
+    }
+    navigate('/inventory');
+    return;
+  }
+  // ─────────────────────────────────────────────────────────────────
 
   // Use full hash (path + query) so edit?id=X vs new are treated as different
   if (full === currentPath) return;

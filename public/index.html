@@ -81,11 +81,11 @@
         <span class="material-symbols-outlined">history</span>
         <span>Transactions</span>
       </a>
-      <a class="nav-item" data-nav="Reports" onclick="navigate('/sales-report')">
+      <a class="nav-item" data-nav="Reports" data-role-required="manager" onclick="navigate('/sales-report')">
         <span class="material-symbols-outlined">assessment</span>
         <span>Reports</span>
       </a>
-      <a class="nav-item" data-nav="Analytics" onclick="navigate('/analytics')">
+      <a class="nav-item" data-nav="Analytics" data-role-required="manager" onclick="navigate('/analytics')">
         <span class="material-symbols-outlined">analytics</span>
         <span>Analytics</span>
       </a>
@@ -168,7 +168,7 @@
     <span class="material-symbols-outlined">point_of_sale</span>
     <span>POS</span>
   </a>
-  <button class="bottom-nav-fab" id="fab-add-product" onclick="navigate('/product-detail')" title="Tambah Barang">
+  <button class="bottom-nav-fab" id="fab-add-product" data-role-required="manager" onclick="navigate('/product-detail')" title="Tambah Barang">
     <span class="material-symbols-outlined">add</span>
   </button>
   <a class="bottom-nav-item" data-nav="Inventory" onclick="navigate('/inventory')">
@@ -280,9 +280,17 @@
 
     if (nameEl) nameEl.textContent = u.name;
     if (roleEl) {
-      if (u.role === '_guest') roleEl.textContent = 'Demo / Guest';
-      else roleEl.textContent = u.role === 'manager' ? 'Store Manager' : 'Cashier';
+      if (u.role === '_guest')       roleEl.textContent = 'Demo / Guest';
+      else if (u.role === 'manager') roleEl.textContent = 'Store Manager';
+      else if (u.role === 'admin')   roleEl.textContent = 'Administrator';
+      else                           roleEl.textContent = 'Cashier';
     }
+
+    // ── RBAC: Tampilkan/sembunyikan elemen berdasarkan role ──
+    const isPrivileged = ['manager', 'admin', '_guest'].includes(u.role);
+    document.querySelectorAll('[data-role-required="manager"]').forEach(el => {
+      el.style.display = isPrivileged ? '' : 'none';
+    });
     if (avatarEl) avatarEl.textContent = u.initials;
     if (terminalEl) terminalEl.textContent = State.settings?.terminal || 'Terminal 01';
 

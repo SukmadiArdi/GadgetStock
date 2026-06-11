@@ -1,19 +1,60 @@
 <!-- pages/sales-report.html -->
 <style>
-  .report-container { display: flex; flex-direction: column; gap: 0; height: auto; overflow: visible; }
-  .report-top-section { flex-shrink: 0; margin-bottom: 0.5rem; }
-  .report-table-card { margin-top: 1.5rem; display: flex; flex-direction: column; overflow: hidden; min-height: 400px; }
-  
-  @media (min-width: 768px) {
-    .report-container { height: calc(100vh - var(--header-h) - 3rem); overflow: hidden; }
-    .report-top-section { overflow-y: auto; padding-right: 0.5rem; }
-    .report-table-card { flex: 1; min-height: 0; }
+  .report-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    /* Mobile: natural document flow */
+    height: auto;
+    overflow: visible;
   }
+  .report-top-section {
+    flex-shrink: 0;
+    margin-bottom: 0;
+  }
+  .report-table-card {
+    margin-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 320px;
+  }
+
+  /* ── Desktop: fixed layout ─────────────────────────────────── */
+  @media (min-width: 768px) {
+    .report-container {
+      height: 100%;
+      overflow: hidden;
+      display: grid;
+      /* Row 1: page header | Row 2: KPI+chart (static) | Row 3: Transactions table (scrollable) */
+      grid-template-rows: auto auto minmax(0, 1fr);
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+    /* Header row occupies row 1 */
+    .report-header-row { grid-row: 1; }
+
+    /* Static top section: KPI + chart + top products (no scroll) */
+    .report-top-section {
+      grid-row: 2;
+      padding-right: 0.25rem;
+      padding-bottom: 0.5rem;
+    }
+
+    /* Transactions table always visible at bottom, fills remaining height */
+    .report-table-card {
+      grid-row: 3;
+      margin-top: 1rem;
+      min-height: 0;
+      flex: unset;
+    }
+  }
+
 
   /* Chart Styles */
   .chart-container-wrapper {
     display: flex;
-    height: 10.5rem;
+    height: 8.5rem;
     position: relative;
     margin-bottom: 0.5rem;
   }
@@ -21,7 +62,7 @@
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    height: 10rem;
+    height: 8rem;
     font-size: 0.625rem;
     font-weight: 600;
     color: var(--on-surface-variant);
@@ -34,7 +75,7 @@
   .chart-body {
     position: relative;
     flex: 1;
-    height: 10rem;
+    height: 8rem;
   }
   .chart-gridline {
     position: absolute;
@@ -147,7 +188,7 @@
   }
 </style>
 <div class="fade-in report-container">
-  <div class="report-header-row analytics-header-row" style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:1.5rem;flex-shrink:0;">
+  <div class="report-header-row analytics-header-row" style="display:flex;align-items:flex-end;justify-content:space-between;padding-bottom:1.5rem;">
     <div>
       <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.15em;font-weight:700;color:var(--on-surface-variant);">Reports</p>
       <h1 style="font-size:1.875rem;font-weight:800;color:var(--text-blue);">Daily Sales Report</h1>
@@ -160,32 +201,32 @@
     </div>
   </div>
 
-  <div class="report-top-section custom-scroll">
+  <div class="report-top-section">
     <!-- KPI Cards -->
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem;" id="report-kpis">
-      <div class="card" style="padding:1.25rem;">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1rem;" id="report-kpis">
+      <div class="card" style="padding:1rem;">
         <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;color:var(--on-surface-variant);">Total Revenue</p>
-        <h3 id="r-revenue" style="font-size:1.5rem;font-weight:800;color:var(--text-blue);margin-top:0.25rem;" class="text-rupiah">—</h3>
+        <h3 id="r-revenue" style="font-size:1.25rem;font-weight:800;color:var(--text-blue);margin-top:0.25rem;" class="text-rupiah">—</h3>
       </div>
-      <div class="card" style="padding:1.25rem;">
+      <div class="card" style="padding:1rem;">
         <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;color:var(--on-surface-variant);">Total Orders</p>
-        <h3 id="r-orders" style="font-size:1.5rem;font-weight:800;color:var(--text-blue);margin-top:0.25rem;">—</h3>
+        <h3 id="r-orders" style="font-size:1.25rem;font-weight:800;color:var(--text-blue);margin-top:0.25rem;">—</h3>
       </div>
-      <div class="card" style="padding:1.25rem;">
+      <div class="card" style="padding:1rem;">
         <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;color:var(--on-surface-variant);">Avg. Order Value</p>
-        <h3 id="r-avg" style="font-size:1.5rem;font-weight:800;color:var(--text-blue);margin-top:0.25rem;" class="text-rupiah">—</h3>
+        <h3 id="r-avg" style="font-size:1.25rem;font-weight:800;color:var(--text-blue);margin-top:0.25rem;" class="text-rupiah">—</h3>
       </div>
-      <div class="card" style="padding:1.25rem;">
+      <div class="card" style="padding:1rem;">
         <p style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;color:var(--on-surface-variant);">Items Sold</p>
-        <h3 id="r-items" style="font-size:1.5rem;font-weight:800;color:var(--text-blue);margin-top:0.25rem;">—</h3>
+        <h3 id="r-items" style="font-size:1.25rem;font-weight:800;color:var(--text-blue);margin-top:0.25rem;">—</h3>
       </div>
     </div>
 
-    <div class="two-col-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+    <div class="two-col-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
       <!-- Hourly Chart -->
-      <div class="card" style="padding:1.5rem; position:relative;">
+      <div class="card" style="padding:1.25rem; position:relative;">
         <h2 style="font-size:0.875rem;font-weight:700;color:var(--text-blue);margin-bottom:0.25rem;">Revenue by Hour</h2>
-        <p style="font-size:0.6875rem;color:var(--on-surface-variant);margin-bottom:1.25rem;">Grafik sebaran transaksi harian berdasarkan jam</p>
+        <p style="font-size:0.6875rem;color:var(--on-surface-variant);margin-bottom:1rem;">Grafik sebaran transaksi harian berdasarkan jam</p>
         
         <div class="chart-container-wrapper">
           <!-- Y-Axis labels (populated dynamically by JS) -->
@@ -218,8 +259,8 @@
       </div>
 
       <!-- Top Products -->
-      <div class="card" style="padding:1.5rem;">
-        <h2 style="font-size:0.875rem;font-weight:700;color:var(--text-blue);margin-bottom:1.25rem;">Top Products</h2>
+      <div class="card" style="padding:1.25rem;">
+        <h2 style="font-size:0.875rem;font-weight:700;color:var(--text-blue);margin-bottom:1rem;">Top Products</h2>
         <div id="top-products" style="display:flex;flex-direction:column;gap:0.75rem;"></div>
       </div>
     </div>

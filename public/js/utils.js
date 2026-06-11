@@ -172,3 +172,62 @@ export function getHashParams() {
   if (qIdx === -1) return {};
   return Object.fromEntries(new URLSearchParams(hash.slice(qIdx + 1)));
 }
+
+/**
+ * Role-Based Access Control (RBAC) helper.
+ * Cek apakah user saat ini memiliki izin terhadap suatu fitur.
+ *
+ * Role hierarchy:
+ *  - admin    : akses penuh (sama dengan manager)
+ *  - manager  : akses penuh ke semua fitur termasuk laporan & manajemen produk
+ *  - cashier  : hanya POS, lihat inventory & transaksi — tidak bisa kelola produk / laporan
+ *  - _guest   : semua fitur dalam mode demo (tidak disimpan ke DB)
+ *
+ * @param {'reports'|'analytics'|'manage_products'|'store_settings'|'full'} feature
+ * @param {object|null} user  - State.currentUser (default: ambil dari localStorage)
+ * @returns {boolean}
+ */
+export function canAccess(feature, user = null) {
+  // Ambil user dari localStorage jika tidak disediakan
+  if (!user) {
+    try {
+      const stored = localStorage.getItem('gs_user');
+      user = stored && stored !== 'undefined' ? JSON.parse(stored) : null;
+    } catch (_) { user = null; }
+  }
+  if (!user) return false;
+
+  const role = user.role;
+
+  // Guest: akses semua fitur dalam mode demo
+  if (role === '_guest') return true;
+
+  // Admin & Manager: akses penuh
+  if (role === 'admin' || role === 'manager') return true;
+
+  // Cashier: pembatasan berdasarkan fitur
+  if (role === 'cashier') {
+    // Fitur yang BOLEH diakses cashier
+    const cashierAllowed = ['pos', 'checkout', 'receipt', 'dashboard', 'inventory_view', 'transactions_view', 'low_stock', 'settings_personal'];
+    return cashierAllowed.includes(feature);
+  }
+
+  return false;
+}
+
+/**
+ * Cek apakah user adalah manager atau admin (atau guest untuk demo).
+ * Shorthand untuk canAccess('manage_products').
+ * @param {object|null} user
+ * @returns {boolean}
+ */
+export function isManagerOrAbove(user = null) {
+  if (!user) {
+    try {
+      const stored = localStorage.getItem('gs_user');
+      user = stored && stored !== 'undefined' ? JSON.parse(stored) : null;
+    } catch (_) { user = null; }
+  }
+  if (!user) return false;
+  return ['admin', 'manager', '_guest'].includes(user.role);
+}

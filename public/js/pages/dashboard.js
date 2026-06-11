@@ -1,6 +1,7 @@
 import { DashboardAPI } from '/js/api.js';
-import { formatRupiah, formatRelativeTime, getStockStatus } from '/js/utils.js';
+import { formatRupiah, formatRelativeTime, getStockStatus, isManagerOrAbove } from '/js/utils.js';
 import State from '/js/state.js';
+
 
 async function load() {
   // Greeting
@@ -28,6 +29,7 @@ async function load() {
 
     // Critical Stock Table
     const tbody = document.getElementById('stock-alerts-body');
+    const canManage = isManagerOrAbove(State.currentUser);
     if (!data.critical_stock.length) {
       tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--outline);">✅ All products have sufficient stock</td></tr>`;
     } else {
@@ -48,7 +50,7 @@ async function load() {
           <td><span style="font-family:monospace;font-size:0.75rem;color:var(--on-surface-variant);">${p.sku}</span></td>
           <td><span style="font-weight:700;color:${p.stock===0?'var(--error)':'inherit'}">${p.stock}</span></td>
           <td><span class="badge ${s.class}">${s.label}</span></td>
-          <td><button class="btn btn-ghost btn-sm" onclick="navigate('/product-detail?id=${p.id}')"><span class="material-symbols-outlined" style="font-size:1rem;">edit</span></button></td>
+          <td>${canManage ? `<button class="btn btn-ghost btn-sm" onclick="navigate('/product-detail?id=${p.id}')"><span class="material-symbols-outlined" style="font-size:1rem;">edit</span></button>` : '<span style="font-size:0.75rem;color:var(--on-surface-variant);">—</span>'}</td>
         </tr>`;
       }).join('');
     }
