@@ -3,6 +3,15 @@ import { formatRupiah, currentMonthISO } from '/js/utils.js';
 
 document.getElementById('analytics-month').value = currentMonthISO();
 
+function formatRupiahCompact(value) {
+  if (value >= 1000000) {
+    return 'Rp ' + (value / 1000000).toFixed(1).replace(/\.0$/, '') + ' Jt';
+  } else if (value >= 1000) {
+    return 'Rp ' + (value / 1000).toFixed(0) + ' Rb';
+  }
+  return 'Rp ' + value;
+}
+
 let currentAnalyticsData = null;
 
 async function loadAnalytics() {
@@ -22,21 +31,168 @@ async function loadAnalytics() {
     document.getElementById('a-rev-icon').textContent = pct >= 0 ? 'trending_up' : 'trending_down';
     document.getElementById('a-rev-icon').style.color = pct >= 0 ? '#4ade80' : '#f87171';
 
-    // Daily chart
+    // === Daily chart (Enhanced) ==================================
     const maxRev = Math.max(...data.daily.map(d=>d.revenue), 1);
+    
+    // Find peak day (highest revenue)
+    let peakDay = null;
+    let peakRev = -1;
+    let peakOrders = 0;
+    
+    // Find quietest day (lowest positive revenue, or 0 if all 0)
+    let quietDay = null;
+    let quietRev = Infinity;
+    let quietOrders = 0;
+    
+    data.daily.forEach(d => {
+      if (d.revenue > peakRev) {
+        peakRev = d.revenue;
+        peakDay = d.day;
+        peakOrders = d.orders || 0;
+      }
+      if (d.revenue > 0 && d.revenue < quietRev) {
+        quietRev = d.revenue;
+        quietDay = d.day;
+        quietOrders = d.orders || 0;
+      }
+    });
+    
+    if (quietRev === Infinity) {
+      quietRev = 0;
+      quietDay = '-';
+      quietOrders = 0;
+    }
+
+    // Populate Y-Axis labels
+    const yAxisEl = document.getElementById('chart-y-axis');
+    if (yAxisEl) {
+      yAxisEl.innerHTML = `
+        <span>${formatRupiahCompact(maxRev)}</span>
+        <span>${formatRupiahCompact(Math.round(maxRev * 0.66))}</span>
+        <span>${formatRupiahCompact(Math.round(maxRev * 0.33))}</span>
+        <span>Rp 0</span>
+      `;
+    }
+
     document.getElementById('last-day').textContent = data.daily.length;
-    document.getElementById('daily-chart').innerHTML = data.daily.map(d => {
+    
+    // Render Bars
+    const chartContainer = document.getElementById('daily-chart');
+    chartContainer.innerHTML = data.daily.map(d => {
       const pct = Math.max(2, (d.revenue / maxRev) * 100);
-      const isWeekend = (new Date(month + '-' + String(d.day).padStart(2,'0'))).getDay() % 6 === 0;
+      const dateString = `${month}-${String(d.day).padStart(2,'0')}`;
+      const dateObj = new Date(dateString);
+      const isWeekend = dateObj.getDay() % 6 === 0;
       const isActive = d.revenue > 0;
-      return `<div title="Day ${d.day}: ${formatRupiah(d.revenue)}" 
-        onclick="showToast('Day ${d.day}: ${formatRupiah(d.revenue)}', 'info', 2000)"
-        style="flex:1; background:${isActive ? (isWeekend ? 'linear-gradient(to top, #64748b, #94a3b8)' : 'linear-gradient(to top, var(--primary-container), #3b82f6)') : 'var(--surface-container-high)'}; 
-        border-radius:4px 4px 0 0; height:${pct}%; cursor:pointer; transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
-        box-shadow: ${isActive ? '0 4px 12px rgba(59, 130, 246, 0.2)' : 'none'};"
-        onmouseover="this.style.opacity='0.8'; this.style.transform='scaleY(1.02)'" 
-        onmouseout="this.style.opacity='1'; this.style.transform='scaleY(1)'"></div>`;
+      const isPeak = d.day === peakDay && isActive;
+      
+      let barClass = 'chart-bar chart-bar-empty';
+      let styleString = `height:${pct}%;`;
+      
+      if (isActive) {
+        if (isPeak) {
+          barClass = 'chart-bar chart-bar-peak';
+        } else if (isWeekend) {
+          barClass = 'chart-bar chart-bar-weekend';
+        } else {
+          barClass = 'chart-bar chart-bar-active';
+        }
+      }
+      
+      return `<div 
+        class="${barClass}" 
+        style="${styleString}"
+        data-day="${d.day}"
+        data-revenue="${d.revenue}"
+        data-orders="${d.orders || 0}"
+        data-date="${dateString}"
+      ></div>`;
     }).join('');
+
+    // Setup interactive tooltip
+    const tooltip = document.getElementById('chart-tooltip');
+    const bars = chartContainer.querySelectorAll('.chart-bar');
+    
+    bars.forEach(bar => {
+      bar.addEventListener('pointermove', (e) => {
+        const day = bar.getAttribute('data-day');
+        const revenue = parseFloat(bar.getAttribute('data-revenue'));
+        const orders = bar.getAttribute('data-orders');
+        const rawDate = bar.getAttribute('data-date');
+        
+        // Format Indonesian Date
+        const dateObj = new Date(rawDate);
+        const dayName = dateObj.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' });
+        
+        tooltip.innerHTML = `
+          <div class="chart-tooltip-date">${dayName}</div>
+          <div class="chart-tooltip-row">
+            <span class="chart-tooltip-label">Pendapatan:</span>
+            <span class="chart-tooltip-value" style="color:#4ade80;">${formatRupiah(revenue)}</span>
+          </div>
+          <div class="chart-tooltip-row">
+            <span class="chart-tooltip-label">Transaksi:</span>
+            <span class="chart-tooltip-value" style="color:#60a5fa;">${orders} pesanan</span>
+          </div>
+        `;
+        
+        // Dynamically compute tooltip size to eliminate offsets and hardcoded coordinates
+        const rect = tooltip.getBoundingClientRect();
+        const tooltipWidth = rect.width || 180;
+        const tooltipHeight = rect.height || 75;
+        
+        // Center horizontally and bound within viewport borders
+        const leftPos = Math.max(10, Math.min(e.clientX - tooltipWidth / 2, window.innerWidth - tooltipWidth - 10));
+        // Position exactly 12px above the mouse pointer
+        const topPos = e.clientY - tooltipHeight - 12;
+        
+        tooltip.style.left = `${leftPos}px`;
+        tooltip.style.top = `${topPos}px`;
+        tooltip.classList.add('visible');
+      });
+      
+      bar.addEventListener('mouseleave', () => {
+        tooltip.classList.remove('visible');
+      });
+    });
+
+    // Hide tooltip when clicking or tapping away outside chart bars
+    const hideTooltip = () => {
+      tooltip.classList.remove('visible');
+    };
+
+    document.addEventListener('pointerdown', (e) => {
+      if (!e.target.closest('.chart-bar')) {
+        hideTooltip();
+      }
+    }, { passive: true });
+
+    // Populate Dynamic Insights Cards
+    const insightsEl = document.getElementById('daily-insights');
+    if (insightsEl) {
+      insightsEl.innerHTML = `
+        <div class="insight-item">
+          <div class="insight-icon" style="background:rgba(16, 185, 129, 0.15); color:#10b981;">
+            <span class="material-symbols-outlined">trending_up</span>
+          </div>
+          <div class="insight-info">
+            <span class="insight-label">Hari Puncak (Peak)</span>
+            <span class="insight-val text-rupiah">${formatRupiah(peakRev)}</span>
+            <span class="insight-subtext">Tanggal ${peakDay} (${peakOrders} Transaksi)</span>
+          </div>
+        </div>
+        <div class="insight-item">
+          <div class="insight-icon" style="background:rgba(96, 165, 250, 0.15); color:#60a5fa;">
+            <span class="material-symbols-outlined">hotel</span>
+          </div>
+          <div class="insight-info">
+            <span class="insight-label">Hari Tersepi (Quiet)</span>
+            <span class="insight-val text-rupiah">${quietRev > 0 ? formatRupiah(quietRev) : 'Tidak ada omzet'}</span>
+            <span class="insight-subtext">Tanggal ${quietDay} ${quietRev > 0 ? `(${quietOrders} Transaksi)` : ''}</span>
+          </div>
+        </div>
+      `;
+    }
 
     // Top products
     const topDiv = document.getElementById('a-top-products');

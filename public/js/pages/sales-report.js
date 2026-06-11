@@ -3,6 +3,15 @@ import { formatRupiah, formatDate, todayISO } from '/js/utils.js';
 
 document.getElementById('report-date').value = todayISO();
 
+function formatRupiahCompact(value) {
+  if (value >= 1000000) {
+    return 'Rp ' + (value / 1000000).toFixed(1).replace(/\.0$/, '') + ' Jt';
+  } else if (value >= 1000) {
+    return 'Rp ' + (value / 1000).toFixed(0) + ' Rb';
+  }
+  return 'Rp ' + value;
+}
+
 let currentReportData = null;
 
 async function loadReport() {
@@ -18,7 +27,7 @@ async function loadReport() {
     document.getElementById('r-avg').textContent     = formatRupiah(avgOrderValue);
     document.getElementById('r-items').textContent   = totalItemsSold;
 
-    // Hourly chart
+    // === Hourly chart (Enhanced) ==================================
     const maxRev = Math.max(...data.hourly.map(h=>h.revenue), 1);
     const peakHours = Array.from({length: 16}, (_, i) => i + 7); // 07:00 to 22:00
     const chartDiv = document.getElementById('hourly-chart');
@@ -26,21 +35,156 @@ async function loadReport() {
     
     const filteredHours = data.hourly.filter(h => peakHours.includes(h.hour));
     
+    // Find peak hour and quietest hour (from filteredHours)
+    let peakHour = null;
+    let peakRev = -1;
+    let peakOrders = 0;
+    
+    let quietHour = null;
+    let quietRev = Infinity;
+    let quietOrders = 0;
+    
+    filteredHours.forEach(h => {
+      if (h.revenue > peakRev) {
+        peakRev = h.revenue;
+        peakHour = h.hour;
+        peakOrders = h.orders || 0;
+      }
+      if (h.revenue > 0 && h.revenue < quietRev) {
+        quietRev = h.revenue;
+        quietHour = h.hour;
+        quietOrders = h.orders || 0;
+      }
+    });
+    
+    if (quietRev === Infinity) {
+      quietRev = 0;
+      quietHour = '-';
+      quietOrders = 0;
+    }
+
+    // Populate Y-Axis labels
+    const yAxisEl = document.getElementById('chart-y-axis');
+    if (yAxisEl) {
+      yAxisEl.innerHTML = `
+        <span>${formatRupiahCompact(maxRev)}</span>
+        <span>${formatRupiahCompact(Math.round(maxRev * 0.66))}</span>
+        <span>${formatRupiahCompact(Math.round(maxRev * 0.33))}</span>
+        <span>Rp 0</span>
+      `;
+    }
+
+    // Render Bars
     chartDiv.innerHTML = filteredHours.map(h => {
-      const pct = Math.max(0, (h.revenue / maxRev) * 100);
+      const pct = Math.max(2, (h.revenue / maxRev) * 100);
       const isActive = h.revenue > 0;
-      const formatted = formatRupiah(h.revenue);
-      return `<div title="${h.label}: ${formatted}" 
-        onclick="showToast('${h.label}: ${formatted}', 'info', 2000)"
-        style="flex:1; background:${isActive ? 'linear-gradient(to top, var(--primary-container), #3b82f6)' : 'var(--surface-container-high)'}; 
-        border-radius:4px 4px 0 0; height:${pct}%; cursor:pointer; transition:all 0.3s ease;
-        box-shadow: ${isActive ? '0 4px 10px rgba(59, 130, 246, 0.15)' : 'none'};"
-        onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'"></div>`;
+      const isPeak = h.hour === peakHour && isActive;
+      
+      let barClass = 'chart-bar chart-bar-empty';
+      let styleString = `height:${pct}%;`;
+      
+      if (isActive) {
+        if (isPeak) {
+          barClass = 'chart-bar chart-bar-peak';
+        } else {
+          barClass = 'chart-bar chart-bar-active';
+        }
+      }
+      
+      return `<div 
+        class="${barClass}" 
+        style="${styleString}"
+        data-hour="${h.hour}"
+        data-label="${h.label}"
+        data-revenue="${h.revenue}"
+        data-orders="${h.orders || 0}"
+      ></div>`;
     }).join('');
 
+    // Setup interactive tooltip
+    const tooltip = document.getElementById('chart-tooltip');
+    const bars = chartDiv.querySelectorAll('.chart-bar');
+    
+    bars.forEach(bar => {
+      bar.addEventListener('pointermove', (e) => {
+        const label = bar.getAttribute('data-label');
+        const revenue = parseFloat(bar.getAttribute('data-revenue'));
+        const orders = bar.getAttribute('data-orders');
+        
+        tooltip.innerHTML = `
+          <div class="chart-tooltip-date">Pukul ${label}</div>
+          <div class="chart-tooltip-row">
+            <span class="chart-tooltip-label">Pendapatan:</span>
+            <span class="chart-tooltip-value" style="color:#4ade80;">${formatRupiah(revenue)}</span>
+          </div>
+          <div class="chart-tooltip-row">
+            <span class="chart-tooltip-label">Transaksi:</span>
+            <span class="chart-tooltip-value" style="color:#60a5fa;">${orders} pesanan</span>
+          </div>
+        `;
+        
+        // Dynamically compute tooltip size to eliminate offsets and hardcoded coordinates
+        const rect = tooltip.getBoundingClientRect();
+        const tooltipWidth = rect.width || 180;
+        const tooltipHeight = rect.height || 75;
+        
+        // Center horizontally and bound within viewport borders
+        const leftPos = Math.max(10, Math.min(e.clientX - tooltipWidth / 2, window.innerWidth - tooltipWidth - 10));
+        // Position exactly 12px above the mouse pointer
+        const topPos = e.clientY - tooltipHeight - 12;
+        
+        tooltip.style.left = `${leftPos}px`;
+        tooltip.style.top = `${topPos}px`;
+        tooltip.classList.add('visible');
+      });
+      
+      bar.addEventListener('mouseleave', () => {
+        tooltip.classList.remove('visible');
+      });
+    });
+
+    // Hide tooltip when clicking or tapping away outside chart bars
+    const hideTooltip = () => {
+      tooltip.classList.remove('visible');
+    };
+
+    document.addEventListener('pointerdown', (e) => {
+      if (!e.target.closest('.chart-bar')) {
+        hideTooltip();
+      }
+    }, { passive: true });
+
+    // Populate X-Axis labels
     labelDiv.innerHTML = filteredHours.map((h, i) =>
-      `<div style="flex:1;font-size:0.625rem;text-align:center;color:var(--on-surface-variant);font-weight:600;">${h.hour % 2 === 0 || i === 0 || i === filteredHours.length-1 ? h.hour : ''}</div>`
+      `<div style="flex:1;font-size:0.625rem;text-align:center;color:var(--on-surface-variant);font-weight:600;">${h.hour % 2 === 0 || i === 0 || i === filteredHours.length-1 ? String(h.hour).padStart(2,'0') + ':00' : ''}</div>`
     ).join('');
+
+    // Populate Dynamic Insights Cards
+    const insightsEl = document.getElementById('hourly-insights');
+    if (insightsEl) {
+      insightsEl.innerHTML = `
+        <div class="insight-item">
+          <div class="insight-icon" style="background:rgba(16, 185, 129, 0.15); color:#10b981;">
+            <span class="material-symbols-outlined">trending_up</span>
+          </div>
+          <div class="insight-info">
+            <span class="insight-label">Jam Puncak (Peak Hour)</span>
+            <span class="insight-val text-rupiah">${formatRupiah(peakRev)}</span>
+            <span class="insight-subtext">Pukul ${String(peakHour).padStart(2,'0')}:00 (${peakOrders} Transaksi)</span>
+          </div>
+        </div>
+        <div class="insight-item">
+          <div class="insight-icon" style="background:rgba(96, 165, 250, 0.15); color:#60a5fa;">
+            <span class="material-symbols-outlined">hotel</span>
+          </div>
+          <div class="insight-info">
+            <span class="insight-label">Jam Tersepi (Quiet Hour)</span>
+            <span class="insight-val text-rupiah">${quietRev > 0 ? formatRupiah(quietRev) : 'Tidak ada omzet'}</span>
+            <span class="insight-subtext">Pukul ${quietHour !== '-' ? String(quietHour).padStart(2,'0') + ':00' : '-'} ${quietRev > 0 ? `(${quietOrders} Transaksi)` : ''}</span>
+          </div>
+        </div>
+      `;
+    }
 
     // Top products
     const topDiv = document.getElementById('top-products');

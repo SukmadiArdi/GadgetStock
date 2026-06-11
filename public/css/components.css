@@ -269,3 +269,46 @@ body.is-guest #page-content {
 .page-btn:hover { background: var(--surface-container-high); }
 .page-btn.active { background: var(--primary-container); color: var(--on-primary); font-weight: 700; }
 .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* === Tooltip ================================================== */
+.chart-tooltip {
+  position: fixed;
+  background: rgba(15, 23, 42, 0.95);
+  color: #fff;
+  padding: 0.625rem 0.875rem;
+  border-radius: var(--radius-md);
+  font-size: 0.75rem;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+  z-index: 10000;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(4px) scale(0.98);
+  border: 1px solid rgba(255,255,255,0.15);
+  backdrop-filter: blur(8px);
+  transition: opacity 0.15s cubic-bezier(0.4, 0, 0.2, 1), transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.chart-tooltip.visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+.chart-tooltip-date {
+  font-weight: 700;
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+  padding-bottom: 0.25rem;
+  margin-bottom: 0.25rem;
+  color: #94a3b8;
+}
+.chart-tooltip-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-top: 0.125rem;
+}
+.chart-tooltip-label {
+  color: rgba(255,255,255,0.6);
+}
+.chart-tooltip-value {
+  font-weight: 700;
+  color: #fff;
+}
+
