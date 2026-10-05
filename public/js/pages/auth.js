@@ -9,12 +9,17 @@ window.togglePassword = function(inputId = 'f-password', iconId = 'pw-icon') {
   const input = document.getElementById(inputId);
   const icon  = document.getElementById(iconId);
   if (!input || !icon) return;
+  const toggleBtn = input.closest('.auth-input-group')?.querySelector('.auth-pw-toggle');
   if (input.type === 'password') {
     input.type = 'text';
     icon.textContent = 'visibility_off';
+    toggleBtn?.setAttribute('aria-pressed', 'true');
+    input.setAttribute('autocomplete', 'off');
   } else {
     input.type = 'password';
     icon.textContent = 'visibility';
+    toggleBtn?.setAttribute('aria-pressed', 'false');
+    input.setAttribute('autocomplete', 'current-password');
   }
 };
 
@@ -45,8 +50,12 @@ window.handleAuth = async function(e) {
   const isLogin = mode === 'login';
   const btn     = document.getElementById('auth-btn');
   const btnIcon = document.getElementById('auth-btn-icon');
+  const btnText = document.getElementById('auth-btn-text');
+  const origText = isLogin ? 'Sign In' : 'Daftar';
   btn.disabled  = true;
   btnIcon.textContent = 'hourglass_empty';
+  btnIcon.classList.add('spinning');
+  btnText.textContent = isLogin ? 'Memproses...' : 'Mendaftarkan...';
 
   try {
     const empId    = document.getElementById('f-empid').value.trim();
@@ -69,7 +78,9 @@ window.handleAuth = async function(e) {
     showToast('Error: ' + err.message, 'error');
   } finally {
     btn.disabled = false;
+    btnIcon.classList.remove('spinning');
     btnIcon.textContent = mode === 'login' ? 'login' : 'person_add';
+    btnText.textContent = origText;
   }
 };
 
@@ -167,6 +178,19 @@ window.handleForgotReset = async function(e) {
     text.textContent = 'Simpan Password';
   }
 };
+
+// UX: Enter di Employee ID pindah ke kolom Password (init saat halaman dimuat via router)
+window.addEventListener('page:loaded', () => {
+  const empInput = document.getElementById('f-empid');
+  if (!empInput || empInput.dataset.enterBound === '1') return;
+  empInput.dataset.enterBound = '1';
+  empInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      document.getElementById('f-password')?.focus();
+    }
+  });
+});
 
 window.enterGuestMode = function() {
   State.setGuestMode();
