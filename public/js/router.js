@@ -147,7 +147,7 @@ function updateNavActive(path) {
 export function initRouter() {
   window.addEventListener('hashchange', render);
   if (!window.location.hash) window.location.hash = '#/dashboard';
-  render();
+  void render();
 }
 
 // Expose navigate globally for inline onclick usage
