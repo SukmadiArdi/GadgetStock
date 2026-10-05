@@ -271,6 +271,56 @@
 }
 .auth-toggle-link button:hover { color: #7c3aed; }
 
+/* ── Forgot Password ── */
+.auth-forgot-link {
+  align-self: flex-end;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #4f46e5;
+  transition: color 0.15s;
+}
+.auth-forgot-link:hover { color: #7c3aed; text-decoration: underline; }
+
+#auth-forgot-view { display: none; }
+/* Saat mode lupa password aktif, hanya panel reset yang ditampilkan */
+#auth-page.forgot-mode .auth-card-inner > *:not(#auth-forgot-view) { display: none; }
+#auth-page.forgot-mode #auth-forgot-view { display: block; }
+
+.forgot-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  padding: 0.75rem 0.875rem;
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: 0.625rem;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--on-surface-variant);
+}
+.forgot-info .material-symbols-outlined {
+  font-size: 1.125rem;
+  flex-shrink: 0;
+  color: #4f46e5;
+}
+.forgot-identity {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.75rem 0.875rem;
+  background: rgba(79,70,229,0.08);
+  border: 1px solid rgba(79,70,229,0.25);
+  border-radius: 0.625rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #4338ca;
+}
+.forgot-identity .material-symbols-outlined { font-size: 1.25rem; flex-shrink: 0; }
+
 /* ── Responsive ── */
 @media (max-width: 767px) {
   #auth-page {
@@ -314,7 +364,8 @@
   .auth-form-header p  { font-size: 0.8125rem !important; margin-top: 0.25rem; }
 
   /* Compact form */
-  #auth-form { gap: 0.75rem !important; }
+  #auth-form,
+  #auth-forgot-view form { gap: 0.75rem !important; }
   .form-group { margin-bottom: 0 !important; }
   .form-label { font-size: 0.75rem !important; margin-bottom: 0.25rem; }
   .form-input { height: 2.75rem !important; font-size: 0.875rem !important; }
@@ -342,10 +393,14 @@
   .auth-divider { margin: 0.875rem 0 !important; }
 
   /* Guest note tiny */
-  #auth-form-panel > div > p:last-child {
+  #auth-guest-note {
     font-size: 0.625rem !important;
     margin-top: 0.375rem !important;
   }
+
+  /* Compact forgot-password panel */
+  .forgot-info { font-size: 0.6875rem !important; padding: 0.625rem 0.75rem !important; }
+  .forgot-identity { font-size: 0.75rem !important; padding: 0.625rem 0.75rem !important; }
 }
 
 </style>
@@ -433,6 +488,9 @@
           </div>
         </div>
 
+        <!-- Lupa password (hanya mode login) -->
+        <button type="button" id="forgot-link" class="auth-forgot-link" onclick="enterForgotMode()">Lupa password?</button>
+
         <!-- Submit -->
         <button type="submit" class="auth-submit-btn" id="auth-btn" style="margin-top:0.5rem;">
           <span class="material-symbols-outlined" id="auth-btn-icon">login</span>
@@ -459,9 +517,101 @@
         <span class="material-symbols-outlined" style="font-size:1.25rem;">visibility</span>
         Masuk sebagai Tamu (Demo Mode)
       </button>
-      <p style="text-align:center;font-size:0.6875rem;color:var(--on-surface-variant);margin-top:0.625rem;line-height:1.5;">
+      <p id="auth-guest-note" style="text-align:center;font-size:0.6875rem;color:var(--on-surface-variant);margin-top:0.625rem;line-height:1.5;">
         Semua fitur aktif — data tidak disimpan ke database
       </p>
+
+      <!-- ── Lupa Password (2 langkah: verifikasi identitas → password baru) ── -->
+      <div id="auth-forgot-view">
+
+        <!-- Langkah 1: verifikasi identitas -->
+        <div id="forgot-step-verify">
+          <div class="auth-form-header">
+            <div style="width:3rem;height:3rem;background:linear-gradient(135deg,#001f3f,#1a3a6b);border-radius:0.875rem;display:flex;align-items:center;justify-content:center;margin-bottom:1.25rem;box-shadow:0 4px 12px rgba(0,31,63,0.25);">
+              <span class="material-symbols-outlined" style="font-size:1.5rem;color:#fff;">lock_reset</span>
+            </div>
+            <h1>Lupa Password?</h1>
+            <p>Verifikasi identitas Anda untuk membuat password baru</p>
+          </div>
+
+          <form id="forgot-verify-form" onsubmit="handleForgotVerify(event)" style="display:flex;flex-direction:column;gap:1rem;">
+            <div class="form-group">
+              <label class="form-label">Employee ID</label>
+              <div class="auth-input-group">
+                <span class="material-symbols-outlined auth-input-icon">person</span>
+                <input type="text" id="fg-empid" class="form-input" placeholder="Contoh: GS-EMP-001" autocomplete="username" required />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Nama Lengkap</label>
+              <div class="auth-input-group">
+                <span class="material-symbols-outlined auth-input-icon">badge</span>
+                <input type="text" id="fg-fullname" class="form-input" placeholder="Sesuai data pendaftaran" autocomplete="name" required />
+              </div>
+            </div>
+
+            <div class="forgot-info">
+              <span class="material-symbols-outlined">info</span>
+              <span>Nama lengkap harus sama dengan yang diisi saat pendaftaran akun. Jika tidak ingat, hubungi Manajer atau Admin toko.</span>
+            </div>
+
+            <button type="submit" class="auth-submit-btn" id="fg-verify-btn">
+              <span class="material-symbols-outlined" id="fg-verify-icon">verified_user</span>
+              <span id="fg-verify-text">Verifikasi</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- Langkah 2: password baru -->
+        <div id="forgot-step-reset" style="display:none;">
+          <div class="auth-form-header">
+            <div style="width:3rem;height:3rem;background:linear-gradient(135deg,#001f3f,#1a3a6b);border-radius:0.875rem;display:flex;align-items:center;justify-content:center;margin-bottom:1.25rem;box-shadow:0 4px 12px rgba(0,31,63,0.25);">
+              <span class="material-symbols-outlined" style="font-size:1.5rem;color:#fff;">password</span>
+            </div>
+            <h1>Password Baru</h1>
+            <p>Buat password baru untuk akun Anda</p>
+          </div>
+
+          <form id="forgot-reset-form" onsubmit="handleForgotReset(event)" style="display:flex;flex-direction:column;gap:1rem;">
+            <div class="forgot-identity">
+              <span class="material-symbols-outlined">verified_user</span>
+              <span id="fg-reset-identity">—</span>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Password Baru</label>
+              <div class="auth-input-group">
+                <span class="material-symbols-outlined auth-input-icon">key</span>
+                <input type="password" id="fg-pass1" class="form-input" placeholder="Minimal 6 karakter" autocomplete="new-password" minlength="6" required style="padding-right:3rem;" />
+                <button type="button" class="auth-pw-toggle" onclick="togglePassword('fg-pass1','fg-pass1-icon')">
+                  <span class="material-symbols-outlined" id="fg-pass1-icon" style="font-size:1.25rem;">visibility</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Ulangi Password Baru</label>
+              <div class="auth-input-group">
+                <span class="material-symbols-outlined auth-input-icon">key</span>
+                <input type="password" id="fg-pass2" class="form-input" placeholder="Ketik ulang password" autocomplete="new-password" minlength="6" required style="padding-right:3rem;" />
+                <button type="button" class="auth-pw-toggle" onclick="togglePassword('fg-pass2','fg-pass2-icon')">
+                  <span class="material-symbols-outlined" id="fg-pass2-icon" style="font-size:1.25rem;">visibility</span>
+                </button>
+              </div>
+            </div>
+
+            <button type="submit" class="auth-submit-btn" id="fg-reset-btn">
+              <span class="material-symbols-outlined" id="fg-reset-icon">save</span>
+              <span id="fg-reset-text">Simpan Password</span>
+            </button>
+          </form>
+        </div>
+
+        <div class="auth-toggle-link">
+          <button type="button" onclick="exitForgotMode()">Kembali ke Login</button>
+        </div>
+      </div>
 
     </div>
   </div>

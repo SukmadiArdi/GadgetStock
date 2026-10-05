@@ -35,7 +35,9 @@ async function request(path, options = {}) {
 export const AuthAPI = {
   login: (employee_id, password) => request('/auth', { method: 'POST', body: JSON.stringify({ action: 'login', employee_id, password }) }),
   signup: (employee_id, password, full_name) => request('/auth', { method: 'POST', body: JSON.stringify({ action: 'signup', employee_id, password, full_name }) }),
-  changePassword: (user_id, new_password) => request('/auth', { method: 'POST', body: JSON.stringify({ action: 'change_password', user_id, new_password }) })
+  changePassword: (user_id, new_password) => request('/auth', { method: 'POST', body: JSON.stringify({ action: 'change_password', user_id, new_password }) }),
+  forgotPassword: (employee_id, full_name) => request('/auth', { method: 'POST', body: JSON.stringify({ action: 'forgot_password', employee_id, full_name }) }),
+  resetPassword: (token, new_password) => request('/auth', { method: 'POST', body: JSON.stringify({ action: 'reset_password', token, new_password }) })
 };
 
 // === Dashboard ====================================================
