@@ -47,6 +47,10 @@ window.toggleMode = function() {
 
 window.handleAuth = async function(e) {
   e.preventDefault();
+
+  // Guard: jangan proses submit login/register saat sedang di mode lupa password
+  if (document.body.classList.contains('forgot-mode')) return;
+
   const isLogin = mode === 'login';
   const btn     = document.getElementById('auth-btn');
   const btnIcon = document.getElementById('auth-btn-icon');
@@ -95,17 +99,37 @@ window.enterForgotMode = function() {
   const empId = document.getElementById('f-empid').value.trim();
   if (empId) document.getElementById('fg-empid').value = empId;
 
-  document.getElementById('auth-page').classList.add('forgot-mode');
+  // Sembunyikan UI login/register secara total & kunci agar tidak bisa disubmit
+  const loginView = document.getElementById('auth-login-view');
+  if (loginView) loginView.setAttribute('inert', '');
+  document.getElementById('auth-form')?.setAttribute('inert', '');
+  document.body.classList.add('forgot-mode');
+  document.getElementById('auth-page').classList.add('forgot-mode'); // fallback lama
   showForgotStep('verify');
+
+  // Reset posisi scroll agar form reset tampil dari atas
+  document.getElementById('page-content')?.scrollTo(0, 0);
+  document.getElementById('auth-form-panel')?.scrollTo(0, 0);
+  window.scrollTo(0, 0);
+
   document.getElementById('fg-empid').focus();
 };
 
 window.exitForgotMode = function() {
   resetToken = null;
+  document.body.classList.remove('forgot-mode');
   document.getElementById('auth-page').classList.remove('forgot-mode');
+
+  // Kembalikan interaksi panel login/register
+  const loginView = document.getElementById('auth-login-view');
+  if (loginView) loginView.removeAttribute('inert');
+  document.getElementById('auth-form')?.removeAttribute('inert');
+
   document.getElementById('forgot-verify-form').reset();
   document.getElementById('forgot-reset-form').reset();
   showForgotStep('verify');
+
+  document.getElementById('f-empid').focus();
 };
 
 window.handleForgotVerify = async function(e) {
@@ -181,6 +205,11 @@ window.handleForgotReset = async function(e) {
 
 // UX: Enter di Employee ID pindah ke kolom Password (init saat halaman dimuat via router)
 window.addEventListener('page:loaded', () => {
+  // Reset state setiap kali halaman auth dimuat ulang agar tidak ada sisa mode lupa password
+  document.body.classList.remove('forgot-mode');
+  const loginView = document.getElementById('auth-login-view');
+  if (loginView) loginView.removeAttribute('inert');
+
   const empInput = document.getElementById('f-empid');
   if (!empInput || empInput.dataset.enterBound === '1') return;
   empInput.dataset.enterBound = '1';

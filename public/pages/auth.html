@@ -319,9 +319,11 @@
 .auth-forgot-link:hover { color: #7c3aed; text-decoration: underline; }
 
 #auth-forgot-view { display: none; }
-/* Saat mode lupa password aktif, hanya panel reset yang ditampilkan */
-#auth-page.forgot-mode .auth-card-inner > *:not(#auth-forgot-view) { display: none; }
-#auth-page.forgot-mode #auth-forgot-view { display: block; }
+
+/* Saat mode lupa password aktif, panel login/register disembunyikan total (display:none)
+   sehingga UI login tidak mungkin ikut tampil di belakang form "Lupa Password". */
+body.forgot-mode #auth-login-view { display: none !important; }
+body.forgot-mode #auth-forgot-view { display: block; }
 
 .forgot-info {
   display: flex;
@@ -479,6 +481,9 @@
   <div id="auth-form-panel">
     <div class="auth-card-inner">
 
+      <!-- ════ VIEW: LOGIN / REGISTER ════ -->
+      <div id="auth-login-view">
+
       <!-- Header -->
       <div class="auth-form-header">
         <div style="width:3rem;height:3rem;background:linear-gradient(135deg,#001f3f,#1a3a6b);border-radius:0.875rem;display:flex;align-items:center;justify-content:center;margin-bottom:1.25rem;box-shadow:0 4px 12px rgba(0,31,63,0.25);">
@@ -554,7 +559,9 @@
         Semua fitur aktif — data tidak disimpan ke database
       </p>
 
-      <!-- ── Lupa Password (2 langkah: verifikasi identitas → password baru) ── -->
+      </div><!-- /#auth-login-view -->
+
+      <!-- ════ VIEW: LUPA PASSWORD (2 langkah: verifikasi identitas → password baru) ════ -->
       <div id="auth-forgot-view">
 
         <!-- Langkah 1: verifikasi identitas -->
