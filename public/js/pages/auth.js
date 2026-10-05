@@ -1,6 +1,6 @@
-import { AuthAPI } from '/js/api.js';
-import State from '/js/state.js';
-import { showToast } from '/js/utils.js';
+import { AuthAPI } from '../api.js';
+import State from '../state.js';
+import { showToast } from '../utils.js';
 
 let mode = 'login';   // 'login' | 'register'
 let resetToken = null; // token sementara dari verifikasi lupa password
