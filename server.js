@@ -4,10 +4,13 @@ require('dotenv').config({ path: '.env.local' });
 
 const express = require('express');
 const cors    = require('cors');
-const path    = require('path');
+const path    = require('node:path');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
+
+// Sembunyikan informasi framework Express demi keamanan (CWE-200)
+app.disable('x-powered-by');
 
 // === Middleware ================================================
 app.use(cors());
@@ -34,7 +37,7 @@ function vercelHandler(handlerPath, paramMap = {}) {
           extraParams[vercelParam] = req.params[expressParam];
         });
         // Override req.query dengan object baru yang sudah include route params
-        req.query = Object.assign({}, req.query, extraParams);
+        req.query = { ...req.query, ...extraParams };
       }
       await handler(req, res);
     } catch (err) {

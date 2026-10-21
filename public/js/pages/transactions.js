@@ -23,6 +23,11 @@ async function loadTxns() {
     const { transactions, pagination } = await TransactionsAPI.list(params);
 
     if (!transactions.length) {
+      if (currentPage > 1) {
+        currentPage = 1;
+        localStorage.setItem('gs_txn_page', 1);
+        return loadTxns();
+      }
       tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:3rem;color:var(--outline);">No transactions found</td></tr>`;
       document.getElementById('txn-pagination').style.display = 'none';
       return;
@@ -74,6 +79,11 @@ async function loadTxns() {
         <span class="material-symbols-outlined" style="font-size:1.125rem;">chevron_right</span>
       </button>`;
   } catch (err) {
+    if (currentPage > 1) {
+      currentPage = 1;
+      localStorage.setItem('gs_txn_page', 1);
+      return loadTxns();
+    }
     tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--error);">${err.message}</td></tr>`;
   }
 }

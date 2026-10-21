@@ -33,11 +33,19 @@ module.exports = async (req, res) => {
       if (status === 'in_stock') query = query.gt('stock', 10);
 
       const { data, error, count } = await query;
-      if (error) throw error;
+      if (error) {
+        if (error.code === 'PGRST103') {
+          return res.status(200).json({
+            products: [],
+            pagination: { total: count || 0, page: 1, limit: parseInt(limit), pages: 1 }
+          });
+        }
+        throw error;
+      }
 
       return res.status(200).json({
-        products: data,
-        pagination: { total: count, page: parseInt(page), limit: parseInt(limit), pages: Math.ceil(count / parseInt(limit)) }
+        products: data || [],
+        pagination: { total: count, page: parseInt(page), limit: parseInt(limit), pages: Math.ceil((count || 0) / parseInt(limit)) }
       });
     }
 

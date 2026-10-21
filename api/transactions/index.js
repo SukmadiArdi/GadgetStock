@@ -51,11 +51,19 @@ module.exports = async (req, res) => {
       if (search) query = query.or(`txn_number.ilike.%${search}%,customer_name.ilike.%${search}%`);
 
       const { data, error, count } = await query;
-      if (error) throw error;
+      if (error) {
+        if (error.code === 'PGRST103') {
+          return res.status(200).json({
+            transactions: [],
+            pagination: { total: count || 0, page: 1, limit: parseInt(limit), pages: 1 }
+          });
+        }
+        throw error;
+      }
 
       return res.status(200).json({
-        transactions: data,
-        pagination: { total: count, page: parseInt(page), limit: parseInt(limit), pages: Math.ceil(count / parseInt(limit)) }
+        transactions: data || [],
+        pagination: { total: count, page: parseInt(page), limit: parseInt(limit), pages: Math.ceil((count || 0) / parseInt(limit)) }
       });
     }
 
