@@ -56,9 +56,15 @@
         <textarea id="f-desc" class="form-input form-textarea" placeholder="Product description..."></textarea>
       </div>
       <div class="form-group">
-        <label class="form-label">Product Image (URL, Upload, or Camera)</label>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.375rem;">
+          <label class="form-label" style="margin-bottom:0;">Product Image</label>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="autoFindImage()" title="Cari Gambar Otomatis sesuai nama produk" style="padding:0.25rem 0.5rem;font-size:0.75rem;color:var(--text-blue);font-weight:700;display:flex;align-items:center;gap:0.25rem;background:var(--surface-container-high);border-radius:0.375rem;">
+            <span class="material-symbols-outlined" style="font-size:1rem;color:var(--primary);">auto_awesome</span>
+            <span>Cari Gambar Otomatis</span>
+          </button>
+        </div>
         <div style="display:flex;gap:0.5rem;align-items:center;">
-          <input type="url" id="f-image" class="form-input" placeholder="https://..." style="flex:1;" />
+          <input type="url" id="f-image" class="form-input" placeholder="https://... atau klik Cari Gambar Otomatis" style="flex:1;" />
           <button type="button" class="btn btn-secondary btn-sm" onclick="openCamera()" title="Take Photo" style="padding:0.5rem;width:2.5rem;height:2.5rem;flex-shrink:0;">
             <span class="material-symbols-outlined">photo_camera</span>
           </button>
@@ -67,6 +73,9 @@
           </button>
           <input type="file" id="f-upload" accept="image/png, image/jpeg, image/webp" style="display:none;" onchange="handleImageUpload(event)" />
         </div>
+        <span style="font-size:0.6875rem;color:var(--on-surface-variant);margin-top:0.375rem;display:block;">
+          ✨ Klik <strong>Cari Gambar Otomatis</strong> untuk memilih foto gadget yang cocok secara instan.
+        </span>
       </div>
     </div>
 

@@ -1,20 +1,43 @@
-import { ProductsAPI } from '/js/api.js';
-import { formatRupiah, getHashParams, showToast, showConfirm } from '/js/utils.js';
-import State from '/js/state.js';
+import { ProductsAPI } from '../api.js';
+import { formatRupiah, getHashParams, showToast, showConfirm } from '../utils.js';
+import { resolveGadgetImage } from '../image-helper.js';
+import State from '../state.js';
 
 let productId = null;
 
+window.autoFindImage = function() {
+  const name = document.getElementById('f-name')?.value.trim() || '';
+  const brand = document.getElementById('f-brand')?.value.trim() || '';
+  const category = document.getElementById('f-category')?.value || '';
+
+  if (!name && !category) {
+    showToast('Ketik nama produk atau pilih kategori terlebih dahulu', 'warning');
+    document.getElementById('f-name')?.focus();
+    return;
+  }
+
+  const imgUrl = resolveGadgetImage(name, brand, category);
+  if (imgUrl) {
+    const input = document.getElementById('f-image');
+    input.value = imgUrl;
+    input.dispatchEvent(new Event('input'));
+    showToast('Gambar gadget otomatis berhasil ditemukan! ✨', 'success');
+  } else {
+    showToast('Tidak ada gambar yang cocok', 'warning');
+  }
+};
+
 window.formatCurrencyInput = function(el) {
-  let val = el.value.replace(/[^0-9]/g, '');
-  if (val) el.value = parseInt(val, 10).toLocaleString('id-ID');
+  const val = el.value.replace(/\D/g, '');
+  if (val) el.value = Number.parseInt(val, 10).toLocaleString('id-ID');
   else el.value = '';
 };
 
 function calcMargin() {
-  const sellStr = document.getElementById('f-price-sell').value.replace(/\./g, '');
-  const buyStr  = document.getElementById('f-price-buy').value.replace(/\./g, '');
-  const sell = parseInt(sellStr) || 0;
-  const buy  = parseInt(buyStr) || 0;
+  const sellStr = document.getElementById('f-price-sell').value.replaceAll('.', '');
+  const buyStr  = document.getElementById('f-price-buy').value.replaceAll('.', '');
+  const sell = Number.parseInt(sellStr, 10) || 0;
+  const buy  = Number.parseInt(buyStr, 10) || 0;
   const el   = document.getElementById('margin-text');
   if (sell && buy) {
     const pct = (((sell - buy) / buy) * 100).toFixed(1);
@@ -38,6 +61,22 @@ if (fImage) {
   });
 }
 
+function calculateScaledDimensions(imgWidth, imgHeight, maxSize = 600) {
+  let width = imgWidth;
+  let height = imgHeight;
+
+  if (width > height) {
+    if (width > maxSize) {
+      height *= maxSize / width;
+      width = maxSize;
+    }
+  } else if (height > maxSize) {
+    width *= maxSize / height;
+    height = maxSize;
+  }
+  return { width, height };
+}
+
 window.handleImageUpload = function(e) {
   const file = e.target.files[0];
   if (!file) return;
@@ -46,23 +85,7 @@ window.handleImageUpload = function(e) {
   reader.onload = function(event) {
     const img = new Image();
     img.onload = function() {
-      // Resize to max 600px width/height to save database space
-      const max_size = 600;
-      let width = img.width;
-      let height = img.height;
-
-      if (width > height) {
-        if (width > max_size) {
-          height *= max_size / width;
-          width = max_size;
-        }
-      } else {
-        if (height > max_size) {
-          width *= max_size / height;
-          height = max_size;
-        }
-      }
-
+      const { width, height } = calculateScaledDimensions(img.width, img.height);
       const canvas = document.createElement('canvas');
       canvas.width = width;
       canvas.height = height;
@@ -107,22 +130,7 @@ window.capturePhoto = function() {
   const ctx = canvas.getContext('2d');
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
   
-  // Resize to max 600px width/height to save database space
-  const max_size = 600;
-  let width = canvas.width;
-  let height = canvas.height;
-  if (width > height) {
-    if (width > max_size) {
-      height *= max_size / width;
-      width = max_size;
-    }
-  } else {
-    if (height > max_size) {
-      width *= max_size / height;
-      height = max_size;
-    }
-  }
-  
+  const { width, height } = calculateScaledDimensions(canvas.width, canvas.height);
   const resizeCanvas = document.createElement('canvas');
   resizeCanvas.width = width;
   resizeCanvas.height = height;
@@ -163,8 +171,8 @@ async function init() {
       document.getElementById('f-sku').readOnly = true;
       document.getElementById('f-category').value = p.category || '';
       document.getElementById('f-desc').value = p.description || '';
-      document.getElementById('f-price-sell').value = parseInt(p.price_sell).toLocaleString('id-ID');
-      document.getElementById('f-price-buy').value = p.price_buy ? parseInt(p.price_buy).toLocaleString('id-ID') : '';
+      document.getElementById('f-price-sell').value = Number.parseInt(p.price_sell, 10).toLocaleString('id-ID');
+      document.getElementById('f-price-buy').value = p.price_buy ? Number.parseInt(p.price_buy, 10).toLocaleString('id-ID') : '';
       document.getElementById('f-stock').value = p.stock;
       document.getElementById('f-stock-min').value = p.stock_min;
       document.getElementById('f-image').value = p.image_url || '';
@@ -179,17 +187,26 @@ window.saveProduct = async function(e) {
   const btn = document.getElementById('save-btn');
   btn.disabled = true; btn.querySelector('.material-symbols-outlined').textContent = 'hourglass_empty';
   try {
+    let imgVal = document.getElementById('f-image').value.trim();
+    if (!imgVal) {
+      imgVal = resolveGadgetImage(
+        document.getElementById('f-name').value,
+        document.getElementById('f-brand').value,
+        document.getElementById('f-category').value
+      );
+    }
+
     const body = {
       name: document.getElementById('f-name').value,
       brand: document.getElementById('f-brand').value,
       sku: document.getElementById('f-sku').value,
       category: document.getElementById('f-category').value,
       description: document.getElementById('f-desc').value,
-      price_sell: parseInt(document.getElementById('f-price-sell').value.replace(/\./g, '')),
-      price_buy: parseInt(document.getElementById('f-price-buy').value.replace(/\./g, '')) || 0,
-      stock: parseInt(document.getElementById('f-stock').value) || 0,
-      stock_min: parseInt(document.getElementById('f-stock-min').value) || 5,
-      image_url: document.getElementById('f-image').value || null
+      price_sell: Number.parseInt(document.getElementById('f-price-sell').value.replaceAll('.', ''), 10),
+      price_buy: Number.parseInt(document.getElementById('f-price-buy').value.replaceAll('.', ''), 10) || 0,
+      stock: Number.parseInt(document.getElementById('f-stock').value, 10) || 0,
+      stock_min: Number.parseInt(document.getElementById('f-stock-min').value, 10) || 5,
+      image_url: imgVal || null
     };
 
     if (State.isGuest) {
@@ -258,10 +275,10 @@ window.openScanner = async function() {
 };
 
 window.closeScanner = async function() {
-  if (html5QrCode && html5QrCode.isScanning) {
+  if (html5QrCode?.isScanning) {
     await html5QrCode.stop();
   }
   document.getElementById('scanner-modal').style.display = 'none';
 };
 
-init();
+void init();
